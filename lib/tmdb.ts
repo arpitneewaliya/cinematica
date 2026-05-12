@@ -27,10 +27,11 @@ async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
 
   try {
     const isV4Token = TMDB_API_KEY.length > 50;
+    const separator = endpoint.includes('?') ? '&' : '?';
     
     const url = isV4Token 
-      ? `${BASE_URL}${endpoint}?language=en-US`
-      : `${BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&language=en-US`;
+      ? `${BASE_URL}${endpoint}${separator}language=en-US`
+      : `${BASE_URL}${endpoint}${separator}api_key=${TMDB_API_KEY}&language=en-US`;
 
     const options: RequestInit = {
       next: { revalidate: 3600 } // Revalidate every hour
@@ -126,4 +127,15 @@ export async function getMovieRecommendations(id: string): Promise<TMDBItem[]> {
 export async function getTVRecommendations(id: string): Promise<TMDBItem[]> {
   const data = await fetchFromTMDB<TMDBResponse>(`/tv/${id}/recommendations`).catch(() => null);
   return data?.results.slice(0, 10).map(item => ({ ...item, media_type: 'tv' })) || [];
+}
+
+export async function searchMedia(query: string): Promise<TMDBItem[]> {
+  if (!query) return [];
+  const data = await fetchFromTMDB<TMDBResponse>(`/search/multi?query=${encodeURIComponent(query)}`);
+  
+  // Filter out people and items without images
+  return data.results
+    .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
+    .filter(item => item.poster_path || item.backdrop_path)
+    .slice(0, 20); // Return top 20 results
 }
