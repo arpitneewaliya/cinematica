@@ -11,7 +11,8 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const details = await getTVDetails(params.id);
+  const { id } = await params;
+  const details = await getTVDetails(id);
   if (!details) return { title: "Not Found" };
   return {
     title: `${details.name} - Cinematica`,
@@ -20,12 +21,13 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function TVShowPage({ params }: Props) {
+  const { id } = await params;
   const [details, credits, videos, recommendations, isSaved] = await Promise.all([
-    getTVDetails(params.id),
-    getTVCredits(params.id),
-    getTVVideos(params.id),
-    getTVRecommendations(params.id),
-    isInWatchlist(Number(params.id), "tv"),
+    getTVDetails(id),
+    getTVCredits(id),
+    getTVVideos(id),
+    getTVRecommendations(id),
+    isInWatchlist(Number(id), "tv"),
   ]);
 
   if (!details) {

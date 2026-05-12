@@ -11,7 +11,8 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const details = await getMovieDetails(params.id);
+  const { id } = await params;
+  const details = await getMovieDetails(id);
   if (!details) return { title: "Not Found" };
   return {
     title: `${details.title} - Cinematica`,
@@ -20,12 +21,13 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function MoviePage({ params }: Props) {
+  const { id } = await params;
   const [details, credits, videos, recommendations, isSaved] = await Promise.all([
-    getMovieDetails(params.id),
-    getMovieCredits(params.id),
-    getMovieVideos(params.id),
-    getMovieRecommendations(params.id),
-    isInWatchlist(Number(params.id), "movie"),
+    getMovieDetails(id),
+    getMovieCredits(id),
+    getMovieVideos(id),
+    getMovieRecommendations(id),
+    isInWatchlist(Number(id), "movie"),
   ]);
 
   if (!details) {
