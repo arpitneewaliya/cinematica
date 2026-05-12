@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { TMDBItem, getImageUrl } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
 import { Play, Plus, Info } from "lucide-react";
@@ -76,17 +77,12 @@ export function Hero({ items }: HeroProps) {
                   </p>
 
                   <div className="flex flex-wrap items-center gap-4 pt-4">
-                    <Button size="lg" className="bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-8 transition-transform hover:scale-105">
-                      <Play className="w-5 h-5 fill-current" />
-                      Watch Trailer
-                    </Button>
-                    <Button size="lg" variant="secondary" className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white gap-2 font-semibold rounded-full px-8 transition-transform hover:scale-105 border border-white/10">
-                      <Plus className="w-5 h-5" />
-                      My List
-                    </Button>
-                    <Button size="icon" variant="ghost" className="rounded-full w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white">
-                      <Info className="w-5 h-5" />
-                    </Button>
+                    <Link href={`/${movie.media_type}/${movie.id}`}>
+                      <Button size="lg" className="bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-8 transition-transform hover:scale-105">
+                        <Play className="w-5 h-5 fill-current" />
+                        More Info
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@
 import { TMDBItem } from "@/lib/tmdb";
 import { MediaCard } from "./MediaCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 
 interface MediaListTabsProps {
   title: string;
@@ -31,19 +32,51 @@ export function MediaListTabs({ title, popular, topRated }: MediaListTabsProps) 
         </TabsList>
         
         <TabsContent value="popular" className="mt-0 outline-none">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.05 } },
+              hidden: {}
+            }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
+          >
             {popular.map((item) => (
-              <MediaCard key={item.id} item={item} />
+              <motion.div
+                key={item.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+                }}
+              >
+                <MediaCard item={item} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </TabsContent>
         
         <TabsContent value="topRated" className="mt-0 outline-none">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.05 } },
+              hidden: {}
+            }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6"
+          >
             {topRated.map((item) => (
-              <MediaCard key={item.id} item={item} />
+              <motion.div
+                key={item.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+                }}
+              >
+                <MediaCard item={item} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </TabsContent>
       </Tabs>
     </div>

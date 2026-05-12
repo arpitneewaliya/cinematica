@@ -91,3 +91,39 @@ export async function fetchTopRatedTvShows(): Promise<TMDBItem[]> {
   const data = await fetchFromTMDB<TMDBResponse>('/tv/top_rated');
   return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'tv' }));
 }
+
+import { MovieDetails, TVDetails, CreditsResponse, VideosResponse } from "@/types/tmdb";
+
+export async function getMovieDetails(id: string): Promise<MovieDetails | null> {
+  return fetchFromTMDB<MovieDetails>(`/movie/${id}`).catch(() => null);
+}
+
+export async function getTVDetails(id: string): Promise<TVDetails | null> {
+  return fetchFromTMDB<TVDetails>(`/tv/${id}`).catch(() => null);
+}
+
+export async function getMovieCredits(id: string): Promise<CreditsResponse | null> {
+  return fetchFromTMDB<CreditsResponse>(`/movie/${id}/credits`).catch(() => null);
+}
+
+export async function getTVCredits(id: string): Promise<CreditsResponse | null> {
+  return fetchFromTMDB<CreditsResponse>(`/tv/${id}/credits`).catch(() => null);
+}
+
+export async function getMovieVideos(id: string): Promise<VideosResponse | null> {
+  return fetchFromTMDB<VideosResponse>(`/movie/${id}/videos`).catch(() => null);
+}
+
+export async function getTVVideos(id: string): Promise<VideosResponse | null> {
+  return fetchFromTMDB<VideosResponse>(`/tv/${id}/videos`).catch(() => null);
+}
+
+export async function getMovieRecommendations(id: string): Promise<TMDBItem[]> {
+  const data = await fetchFromTMDB<TMDBResponse>(`/movie/${id}/recommendations`).catch(() => null);
+  return data?.results.slice(0, 10).map(item => ({ ...item, media_type: 'movie' })) || [];
+}
+
+export async function getTVRecommendations(id: string): Promise<TMDBItem[]> {
+  const data = await fetchFromTMDB<TMDBResponse>(`/tv/${id}/recommendations`).catch(() => null);
+  return data?.results.slice(0, 10).map(item => ({ ...item, media_type: 'tv' })) || [];
+}
