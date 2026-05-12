@@ -14,13 +14,17 @@ export default async function Home() {
   ]);
 
   const hasData = movies.length > 0 || tvShows.length > 0;
-  const topMovie = movies[0] || tvShows[0];
+  
+  // Combine and get top 5 for the slideshow
+  const topHeroItems = [...movies, ...tvShows]
+    .sort((a, b) => b.vote_average - a.vote_average)
+    .slice(0, 5);
 
   return (
     <main className="min-h-screen bg-background pb-16">
       {hasData ? (
         <>
-          {topMovie && <Hero movie={topMovie} />}
+          {topHeroItems.length > 0 && <Hero items={topHeroItems} />}
           <div className="space-y-4 md:space-y-8 mt-4 md:-mt-12 relative z-20">
             <MediaRow title="Trending Movies" items={movies.slice(1)} />
             <MediaRow title="Trending TV Shows" items={tvShows} />
