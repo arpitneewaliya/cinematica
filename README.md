@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cinematica
+
+A movie and TV show discovery platform powered by the TMDB API. Browse trending titles, search for content, watch trailers, and save items to a personal watchlist.
+
+## Features
+
+- **Trending carousel** — auto-playing hero slideshow of top-rated movies & TV shows
+- **Browse & filter** — dedicated pages for Movies and TV Shows with Popular / Top Rated tabs
+- **Search** — find any movie or TV show by title
+- **Detail pages** — backdrop, poster, ratings, genres, overview, cast, and trailer playback
+- **Watchlist** — save and manage titles (requires sign-in)
+- **Auth** — sign-in / sign-up via Clerk (modal-based)
+- **Responsive** — fully mobile-friendly with a collapsible hamburger menu
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 + shadcn/ui |
+| Auth | Clerk |
+| Database | PostgreSQL via Prisma |
+| API | TMDB |
+| Animations | Framer Motion, Embla Carousel |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A [TMDB API key](https://www.themoviedb.org/settings/api)
+- A [Clerk](https://clerk.com) project (publishable + secret key)
+- A PostgreSQL database URL
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+npm install
+
+# Copy env template and fill in your keys
+cp .env .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required variables in `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+TMDB_API_KEY=
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+DATABASE_URL=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Generate Prisma client & push schema
+npx prisma generate
+npx prisma db push
 
-## Learn More
+# Start dev server
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+├── page.tsx          # Home — hero + trending rows
+├── movies/           # Movies listing (Popular / Top Rated)
+├── tv/               # TV Shows listing
+├── movie/[id]/       # Movie detail page
+├── tv/[id]/          # TV Show detail page
+├── search/           # Search results
+├── watchlist/        # User's saved items
+└── actions/          # Server actions (watchlist CRUD)
+components/
+├── Navbar.tsx        # Sticky nav with mobile drawer
+├── Hero.tsx          # Auto-playing hero carousel
+├── MediaCard.tsx     # Poster card (grid item)
+├── MediaRow.tsx      # Horizontal grid section
+├── MediaListTabs.tsx # Tabbed grid (Popular / Top Rated)
+├── SearchBar.tsx     # Search input
+└── media/            # Detail page components (MediaHero, CastRow, TrailerModal, WatchlistButton)
+```
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
