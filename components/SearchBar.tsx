@@ -18,7 +18,7 @@ export function SearchBar() {
   return (
     <form 
       onSubmit={handleSubmit} 
-      className="relative flex items-center w-full max-w-[200px] xl:max-w-xs transition-all duration-300"
+      className="relative flex items-center w-full max-w-full lg:max-w-[200px] xl:max-w-xs transition-all duration-300"
     >
       <div className="relative w-full group">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">

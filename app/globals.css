@@ -128,3 +128,19 @@
     @apply font-sans;
   }
 }
+
+/* Hide scrollbar for horizontal scroll containers */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Better touch scrolling on mobile */
+@media (max-width: 768px) {
+  .hide-scrollbar {
+    -webkit-overflow-scrolling: touch;
+  }
+}

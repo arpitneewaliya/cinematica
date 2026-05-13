@@ -14,9 +14,9 @@ export default async function WatchlistPage() {
   const items = await getUserWatchlist();
 
   return (
-    <main className="min-h-screen bg-background pt-24 pb-16">
+    <main className="min-h-screen bg-background pt-20 md:pt-24 pb-16">
       <div className="container mx-auto px-4 md:px-8">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-8 flex items-center gap-3">
+        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white mb-6 md:mb-8 flex items-center gap-3">
           <span className="w-2 h-10 bg-primary rounded-full inline-block"></span>
           My Watchlist
         </h1>
@@ -32,7 +32,7 @@ export default async function WatchlistPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
             {items.map((item) => {
               const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : "";
               return (
@@ -51,11 +51,11 @@ export default async function WatchlistPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
                     </div>
                     
-                    <CardContent className="absolute bottom-0 w-full p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
-                      <h3 className="font-bold text-lg text-white truncate drop-shadow-md">
+                    <CardContent className="absolute bottom-0 w-full p-2.5 md:p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
+                      <h3 className="font-bold text-sm md:text-lg text-white truncate drop-shadow-md">
                         {item.title}
                       </h3>
-                      <p className="text-sm text-gray-300 font-medium capitalize">
+                      <p className="text-xs md:text-sm text-gray-300 font-medium capitalize">
                         {year} • {item.mediaType}
                       </p>
                     </CardContent>

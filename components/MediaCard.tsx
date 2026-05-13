@@ -23,19 +23,19 @@ export function MediaCard({ item }: { item: TMDBItem }) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
           
-          <div className="absolute right-2 top-2">
-            <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-none text-white gap-1 font-semibold">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+          <div className="absolute right-1.5 top-1.5 md:right-2 md:top-2">
+            <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-none text-white gap-1 font-semibold text-[10px] md:text-xs">
+              <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-yellow-400 text-yellow-400" />
               {item.vote_average.toFixed(1)}
             </Badge>
           </div>
         </div>
         
-        <CardContent className="absolute bottom-0 w-full p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
-          <h3 className="font-bold text-lg text-white truncate drop-shadow-md">
+        <CardContent className="absolute bottom-0 w-full p-2.5 md:p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
+          <h3 className="font-bold text-sm md:text-lg text-white truncate drop-shadow-md">
             {title}
           </h3>
-          <p className="text-sm text-gray-300 font-medium">
+          <p className="text-xs md:text-sm text-gray-300 font-medium">
             {year} • {item.media_type === "movie" ? "Movie" : "TV Show"}
           </p>
         </CardContent>

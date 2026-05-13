@@ -12,16 +12,16 @@ export function CastRow({ cast }: CastRowProps) {
   const topCast = cast.slice(0, 10);
 
   return (
-    <section className="py-12">
+    <section className="py-8 md:py-12">
       <div className="container mx-auto px-4 md:px-8">
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2 mb-6">
+        <h2 className="text-xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2 mb-4 md:mb-6">
           <span className="w-1.5 h-8 bg-primary rounded-full inline-block"></span>
           Top Cast
         </h2>
 
-        <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
+        <div className="flex overflow-x-auto gap-3 md:gap-4 pb-4 snap-x hide-scrollbar">
           {topCast.map((actor) => (
-            <div key={actor.id} className="snap-start shrink-0 w-36 md:w-48 group">
+            <div key={actor.id} className="snap-start shrink-0 w-28 sm:w-36 md:w-48 group">
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 mb-3">
                 {actor.profile_path ? (
                   <Image

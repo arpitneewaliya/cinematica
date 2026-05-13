@@ -39,7 +39,7 @@ export function MediaHero({
   const trailer = videos.find((v) => v.type === "Trailer" && v.site === "YouTube") || videos[0];
 
   return (
-    <div className="relative w-full h-auto min-h-[70vh] flex flex-col md:flex-row items-center justify-center pt-24 pb-12 px-4 md:px-8">
+    <div className="relative w-full h-auto min-h-[60vh] md:min-h-[70vh] flex flex-col md:flex-row items-center justify-center pt-20 md:pt-24 pb-8 md:pb-12 px-4 md:px-8">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         {backdropPath && (
@@ -58,7 +58,7 @@ export function MediaHero({
       <div className="container relative z-10 mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
         {/* Poster */}
         {posterPath && (
-          <div className="relative w-64 h-96 md:w-80 md:h-[30rem] shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+          <div className="relative w-44 h-64 sm:w-56 sm:h-80 md:w-80 md:h-[30rem] shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
             <Image
               src={getImageUrl(posterPath, "w500")}
               alt={title}
@@ -70,11 +70,11 @@ export function MediaHero({
 
         {/* Details */}
         <div className="flex flex-col gap-6 max-w-3xl text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg tracking-tight">
             {title}
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm md:text-base font-medium text-gray-300">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 text-xs md:text-base font-medium text-gray-300">
             <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-none gap-1">
               <Star className="w-4 h-4 fill-current" />
               {rating.toFixed(1)}
@@ -100,8 +100,8 @@ export function MediaHero({
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Overview</h3>
-            <p className="text-gray-300 leading-relaxed text-lg">{overview}</p>
+            <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Overview</h3>
+            <p className="text-sm md:text-lg text-gray-300 leading-relaxed line-clamp-4 md:line-clamp-none">{overview}</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">

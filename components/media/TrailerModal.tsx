@@ -17,11 +17,11 @@ export function TrailerModal({ video }: TrailerModalProps) {
   return (
     <>
       <Button
-        size="lg"
-        className="bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-8 transition-transform hover:scale-105"
+        size="default"
+        className="bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-5 md:px-8 text-sm md:text-base transition-transform hover:scale-105"
         onClick={() => setIsOpen(true)}
       >
-        <Play className="w-5 h-5 fill-current" />
+        <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
         Watch Trailer
       </Button>
 

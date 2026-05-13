@@ -23,10 +23,10 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-background pb-16">
-      <div className="container mx-auto px-4 md:px-8 py-8 pt-24">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3 mb-8">
-          <span className="w-2 h-10 bg-primary rounded-full inline-block"></span>
-          Search Results for <span className="text-primary">"{query}"</span>
+      <div className="container mx-auto px-4 md:px-8 py-6 md:py-8 pt-20 md:pt-24">
+        <h1 className="text-xl sm:text-2xl md:text-4xl font-bold tracking-tight text-white flex flex-wrap items-center gap-2 md:gap-3 mb-6 md:mb-8">
+          <span className="w-2 h-8 md:h-10 bg-primary rounded-full inline-block shrink-0"></span>
+          <span>Search Results for</span> <span className="text-primary">"{query}"</span>
         </h1>
 
         {results.length === 0 ? (
@@ -40,7 +40,7 @@ export default async function SearchPage({ searchParams }: Props) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
             {results.map((item) => (
               <MediaCard key={item.id} item={item} />
             ))}
