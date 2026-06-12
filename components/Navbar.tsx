@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BiMoviePlay } from "react-icons/bi";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Bookmark, Film, Tv, Menu, X, Search } from "lucide-react";
 import { SearchBar } from "./SearchBar";
@@ -18,9 +17,6 @@ export function Navbar() {
         <div className="flex items-center gap-4 md:gap-12">
           {/* Logo */}
           <Link href="/" className="group flex items-center gap-2 md:gap-3">
-            <div className="relative flex items-center justify-center w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-primary to-primary/40 border border-primary/30 shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] group-hover:-rotate-6 group-hover:scale-105">
-              <BiMoviePlay className="w-5 h-5 md:w-6 md:h-6 text-white" />
-            </div>
             <span className="text-xl md:text-2xl font-black tracking-tighter bg-gradient-to-br from-white via-white to-gray-400 bg-clip-text text-transparent group-hover:to-gray-200 transition-colors duration-300">
               Cinematica
             </span>

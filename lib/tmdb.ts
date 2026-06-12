@@ -18,7 +18,7 @@ interface TMDBResponse {
   results: TMDBItem[];
 }
 
-async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
+export async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
   if (!TMDB_API_KEY) {
     console.warn('TMDB_API_KEY is not defined in environment variables');
     // Return empty results if API key is not present so the app doesn't crash
@@ -138,4 +138,33 @@ export async function searchMedia(query: string): Promise<TMDBItem[]> {
     .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
     .filter(item => item.poster_path || item.backdrop_path)
     .slice(0, 20); // Return top 20 results
+}
+
+export async function fetchMediaChunkData(
+  mediaType: 'movie' | 'tv',
+  category: 'popular' | 'top_rated',
+  chunkIndex: number,
+  chunkSize: number = 30
+): Promise<TMDBItem[]> {
+  const startIndex = (chunkIndex - 1) * chunkSize;
+  const endIndex = chunkIndex * chunkSize - 1;
+  
+  // TMDB pages are 1-indexed and return 20 items per page
+  const startPage = Math.floor(startIndex / 20) + 1;
+  const endPage = Math.floor(endIndex / 20) + 1;
+  
+  const pagePromises: Promise<TMDBResponse>[] = [];
+  for (let page = startPage; page <= endPage; page++) {
+    pagePromises.push(fetchFromTMDB<TMDBResponse>(`/${mediaType}/${category}?page=${page}`));
+  }
+  
+  const responses = await Promise.all(pagePromises);
+  
+  // Flatten results and map media_type
+  let allItems = responses.flatMap(res => res.results || []).map(item => ({ ...item, media_type: mediaType }));
+  
+  // Calculate relative start index in the combined array
+  const relativeStartIndex = startIndex % 20;
+  
+  return allItems.slice(relativeStartIndex, relativeStartIndex + chunkSize);
 }

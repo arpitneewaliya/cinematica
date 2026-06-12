@@ -1,4 +1,4 @@
-import { fetchPopularTvShows, fetchTopRatedTvShows } from "@/lib/tmdb";
+import { fetchMediaChunkData } from "@/lib/tmdb";
 import { MediaListTabs } from "@/components/MediaListTabs";
 
 export const metadata = {
@@ -8,14 +8,15 @@ export const metadata = {
 
 export default async function TvShowsPage() {
   const [popular, topRated] = await Promise.all([
-    fetchPopularTvShows(),
-    fetchTopRatedTvShows(),
+    fetchMediaChunkData("tv", "popular", 1),
+    fetchMediaChunkData("tv", "top_rated", 1),
   ]);
 
   return (
     <main className="min-h-screen bg-background">
       <MediaListTabs 
         title="TV Shows" 
+        mediaType="tv"
         popular={popular} 
         topRated={topRated} 
       />
