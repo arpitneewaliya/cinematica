@@ -1,10 +1,14 @@
+"use client";
+
+import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { WatchlistButton } from "./WatchlistButton";
 import { TrailerModal } from "./TrailerModal";
-import { Star, Clock, Calendar } from "lucide-react";
+import { Star, Clock, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { Video } from "@/types/tmdb";
+import { cn } from "@/lib/utils";
 
 interface MediaHeroProps {
   id: number;
@@ -37,6 +41,38 @@ export function MediaHero({
 }: MediaHeroProps) {
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
   const trailer = videos.find((v) => v.type === "Trailer" && v.site === "YouTube") || videos[0];
+
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isCollapsible, setIsCollapsible] = React.useState(false);
+  const textRef = React.useRef<HTMLParagraphElement>(null);
+
+  // Reset expansion state when switching items
+  React.useEffect(() => {
+    setIsExpanded(false);
+  }, [id]);
+
+  const checkCollapsible = React.useCallback(() => {
+    if (textRef.current) {
+      const { scrollHeight, clientHeight } = textRef.current;
+      if (window.innerWidth < 768) {
+        setIsCollapsible(scrollHeight > clientHeight);
+      } else {
+        setIsCollapsible(false);
+      }
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!isExpanded) {
+      checkCollapsible();
+      const timeoutId = setTimeout(checkCollapsible, 100);
+      window.addEventListener("resize", checkCollapsible);
+      return () => {
+        clearTimeout(timeoutId);
+        window.removeEventListener("resize", checkCollapsible);
+      };
+    }
+  }, [overview, isExpanded, checkCollapsible]);
 
   return (
     <div className="relative w-full h-auto min-h-[60vh] md:min-h-[70vh] flex flex-col md:flex-row items-center justify-center pt-20 md:pt-24 pb-8 md:pb-12 px-4 md:px-8">
@@ -101,7 +137,32 @@ export function MediaHero({
 
           <div>
             <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Overview</h3>
-            <p className="text-sm md:text-lg text-gray-300 leading-relaxed line-clamp-4 md:line-clamp-none">{overview}</p>
+            <p
+              ref={textRef}
+              className={cn(
+                "text-sm md:text-lg text-gray-300 leading-relaxed transition-all duration-300",
+                isExpanded ? "line-clamp-none" : "line-clamp-4 md:line-clamp-none"
+              )}
+            >
+              {overview}
+            </p>
+            {isCollapsible && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-3 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-1 mx-auto md:hidden transition-colors cursor-pointer py-1.5 px-3.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 shadow-lg"
+                aria-label={isExpanded ? "Collapse overview" : "Expand overview"}
+              >
+                {isExpanded ? (
+                  <>
+                    Read Less <ChevronUp className="w-3.5 h-3.5" />
+                  </>
+                ) : (
+                  <>
+                    Read More <ChevronDown className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
@@ -121,3 +182,4 @@ export function MediaHero({
     </div>
   );
 }
+
