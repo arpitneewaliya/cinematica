@@ -1,6 +1,7 @@
 import { fetchTrendingMovies, fetchTrendingTvShows } from "@/lib/tmdb";
 import { Hero } from "@/components/Hero";
 import { MediaRow } from "@/components/MediaRow";
+import { getUserWatchlist } from "@/app/actions/watchlist";
 
 export const metadata = {
   title: "Cinematica - Discover Movies & TV Shows",
@@ -12,6 +13,14 @@ export default async function Home() {
     fetchTrendingMovies(),
     fetchTrendingTvShows(),
   ]);
+
+  let initialWatchlistIds: number[] = [];
+  try {
+    const watchlist = await getUserWatchlist();
+    initialWatchlistIds = watchlist.map(item => item.mediaId);
+  } catch (error) {
+    // User is probably not logged in, ignore
+  }
 
   const hasData = movies.length > 0 || tvShows.length > 0;
   
@@ -26,8 +35,8 @@ export default async function Home() {
         <>
           {topHeroItems.length > 0 && <Hero items={topHeroItems} />}
           <div className="space-y-4 md:space-y-8 mt-4 md:-mt-12 relative z-20">
-            <MediaRow title="Trending Movies" items={movies.slice(1)} />
-            <MediaRow title="Trending TV Shows" items={tvShows} />
+            <MediaRow title="Trending Movies" items={movies.slice(1)} initialWatchlistIds={initialWatchlistIds} />
+            <MediaRow title="Trending TV Shows" items={tvShows} initialWatchlistIds={initialWatchlistIds} />
           </div>
         </>
       ) : (

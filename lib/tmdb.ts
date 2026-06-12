@@ -60,12 +60,12 @@ export async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
 
 export async function fetchTrendingMovies(): Promise<TMDBItem[]> {
   const data = await fetchFromTMDB<TMDBResponse>('/trending/movie/day');
-  return data.results.slice(0, 10).map(item => ({ ...item, media_type: 'movie' }));
+  return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'movie' }));
 }
 
 export async function fetchTrendingTvShows(): Promise<TMDBItem[]> {
   const data = await fetchFromTMDB<TMDBResponse>('/trending/tv/day');
-  return data.results.slice(0, 10).map(item => ({ ...item, media_type: 'tv' }));
+  return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'tv' }));
 }
 
 export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500') {
