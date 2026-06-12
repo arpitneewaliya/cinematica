@@ -4,8 +4,15 @@ import { TMDBItem, getImageUrl } from "@/lib/tmdb";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { MiniWatchlistButton } from "./media/MiniWatchlistButton";
 
-export function MediaCard({ item }: { item: TMDBItem }) {
+interface MediaCardProps {
+  item: TMDBItem;
+  isSaved?: boolean;
+  onToggleWatchlist?: (id: number) => void;
+}
+
+export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCardProps) {
   const title = item.title || item.name;
   const releaseDate = item.release_date || item.first_air_date;
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
@@ -23,6 +30,14 @@ export function MediaCard({ item }: { item: TMDBItem }) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
           
+          {onToggleWatchlist && (
+            <MiniWatchlistButton 
+              item={item} 
+              isSaved={isSaved} 
+              onToggle={onToggleWatchlist} 
+            />
+          )}
+
           <div className="absolute right-1.5 top-1.5 md:right-2 md:top-2">
             <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-none text-white gap-1 font-semibold text-[10px] md:text-xs">
               <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-yellow-400 text-yellow-400" />

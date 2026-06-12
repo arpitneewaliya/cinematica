@@ -1,5 +1,6 @@
 import { fetchMediaChunkData } from "@/lib/tmdb";
 import { MediaListTabs } from "@/components/MediaListTabs";
+import { getUserWatchlist } from "@/app/actions/watchlist";
 
 export const metadata = {
   title: "TV Shows - Cinematica",
@@ -12,13 +13,22 @@ export default async function TvShowsPage() {
     fetchMediaChunkData("tv", "top_rated", 1),
   ]);
 
+  let initialWatchlistIds: number[] = [];
+  try {
+    const watchlist = await getUserWatchlist();
+    initialWatchlistIds = watchlist.map(item => item.mediaId);
+  } catch (error) {
+    // User is probably not logged in, ignore
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <MediaListTabs 
         title="TV Shows" 
         mediaType="tv"
         popular={popular} 
-        topRated={topRated} 
+        topRated={topRated}
+        initialWatchlistIds={initialWatchlistIds}
       />
     </main>
   );
