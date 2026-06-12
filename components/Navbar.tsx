@@ -10,6 +10,7 @@ import { SearchBar } from "./SearchBar";
 export function Navbar() {
   const { userId } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/40 backdrop-blur-2xl transition-all duration-300">
@@ -45,6 +46,16 @@ export function Navbar() {
         <div className="flex items-center gap-2 md:gap-3">
           <div className="hidden lg:block mr-2">
             <SearchBar />
+          </div>
+
+          <div className="lg:hidden mr-1">
+            <button
+              onClick={() => setMobileSearchOpen(true)}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+              aria-label="Open search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
           </div>
 
           {userId ? (
@@ -89,15 +100,24 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Search Overlay */}
+      {mobileSearchOpen && (
+        <div className="absolute inset-0 bg-black/95 z-50 flex items-center px-4 gap-3 lg:hidden animate-in fade-in duration-200">
+          <SearchBar autoFocus onSearchSubmit={() => setMobileSearchOpen(false)} />
+          <button 
+            onClick={() => setMobileSearchOpen(false)} 
+            className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+            aria-label="Close search"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+      )}
+
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-white/5 bg-black/80 backdrop-blur-2xl animate-in slide-in-from-top-2 duration-200">
           <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
-            {/* Mobile Search */}
-            <div className="lg:hidden mb-2">
-              <SearchBar />
-            </div>
-
             <Link
               href="/movies"
               className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
