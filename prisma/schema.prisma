@@ -25,3 +25,49 @@ enum MediaType {
   movie
   tv
 }
+
+model WatchedItem {
+  id            String    @id @default(cuid())
+  userId        String
+  mediaId       Int
+  mediaType     MediaType
+  title         String
+  posterPath    String?
+  backdropPath  String?
+  releaseDate   String?
+  runtime       Int?      // Duration in minutes
+  watchedAt     DateTime  @default(now())
+  rating        Int?      // Rating from 1 to 5 stars
+  notes         String?   // User review/notes
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([userId, mediaId, mediaType])
+}
+
+model CustomList {
+  id          String           @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  items       CustomListItem[]
+
+  @@unique([userId, name])
+}
+
+model CustomListItem {
+  id           String     @id @default(cuid())
+  listId       String
+  mediaId      Int
+  mediaType    MediaType
+  title        String
+  posterPath   String?
+  backdropPath String?
+  releaseDate  String?
+  createdAt    DateTime   @default(now())
+  list         CustomList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, mediaId, mediaType])
+}

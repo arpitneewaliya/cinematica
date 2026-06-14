@@ -5,6 +5,8 @@ import Image from "next/image";
 import { getImageUrl } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { WatchlistButton } from "./WatchlistButton";
+import { WatchedButton } from "./WatchedButton";
+import { AddToCustomListButton } from "./AddToCustomListButton";
 import { TrailerModal } from "./TrailerModal";
 import { Star, Clock, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { Video } from "@/types/tmdb";
@@ -23,6 +25,8 @@ interface MediaHeroProps {
   genres: { id: number; name: string }[];
   videos: Video[];
   isSaved: boolean;
+  initialWatchCount?: number;
+  initialLastRating?: number | null;
 }
 
 export function MediaHero({
@@ -38,6 +42,8 @@ export function MediaHero({
   genres,
   videos,
   isSaved,
+  initialWatchCount = 0,
+  initialLastRating = null,
 }: MediaHeroProps) {
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
   const trailer = videos.find((v) => v.type === "Trailer" && v.site === "YouTube") || videos[0];
@@ -175,6 +181,25 @@ export function MediaHero({
               backdropPath={backdropPath}
               releaseDate={releaseDate}
               initialIsSaved={isSaved}
+            />
+            <WatchedButton
+              mediaId={id}
+              mediaType={type}
+              title={title}
+              posterPath={posterPath}
+              backdropPath={backdropPath}
+              releaseDate={releaseDate}
+              runtime={runtime}
+              initialWatchCount={initialWatchCount}
+              initialLastRating={initialLastRating}
+            />
+            <AddToCustomListButton
+              mediaId={id}
+              mediaType={type}
+              title={title}
+              posterPath={posterPath}
+              backdropPath={backdropPath}
+              releaseDate={releaseDate}
             />
           </div>
         </div>

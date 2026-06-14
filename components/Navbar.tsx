@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
-import { Bookmark, Film, Tv, Menu, X, Search } from "lucide-react";
+import { Bookmark, Film, Tv, Menu, X, Search, Eye, ListPlus } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 
 export function Navbar() {
@@ -60,6 +60,20 @@ export function Navbar() {
 
           {userId ? (
             <>
+              <Link 
+                href="/watched" 
+                className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] mr-2 active:scale-95"
+              >
+                <Eye className="w-4 h-4" />
+                Watched
+              </Link>
+              <Link 
+                href="/lists" 
+                className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] mr-2 active:scale-95"
+              >
+                <ListPlus className="w-4 h-4" />
+                Lists
+              </Link>
               <Link 
                 href="/watchlist" 
                 className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] mr-2 active:scale-95"
@@ -135,14 +149,32 @@ export function Navbar() {
               TV Shows
             </Link>
             {userId && (
-              <Link
-                href="/watchlist"
-                className="sm:hidden flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/10 hover:pl-6 transition-all duration-300 group"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Bookmark className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
-                Watchlist
-              </Link>
+              <>
+                <Link
+                  href="/watched"
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/10 hover:pl-6 transition-all duration-300 group"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Eye className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+                  Watched
+                </Link>
+                <Link
+                  href="/lists"
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/10 hover:pl-6 transition-all duration-300 group"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <ListPlus className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+                  Lists
+                </Link>
+                <Link
+                  href="/watchlist"
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/10 hover:pl-6 transition-all duration-300 group"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Bookmark className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+                  Watchlist
+                </Link>
+              </>
             )}
             {!userId && (
               <div className="sm:hidden pt-4 mt-2 border-t border-white/10">

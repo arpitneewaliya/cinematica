@@ -3,6 +3,7 @@ import { MediaHero } from "@/components/media/MediaHero";
 import { CastRow } from "@/components/media/CastRow";
 import { MediaRow } from "@/components/MediaRow";
 import { isInWatchlist } from "@/app/actions/watchlist";
+import { getWatchedCount } from "@/app/actions/watched";
 
 interface Props {
   params: {
@@ -22,12 +23,13 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function MoviePage({ params }: Props) {
   const { id } = await params;
-  const [details, credits, videos, recommendations, isSaved] = await Promise.all([
+  const [details, credits, videos, recommendations, isSaved, watchInfo] = await Promise.all([
     getMovieDetails(id),
     getMovieCredits(id),
     getMovieVideos(id),
     getMovieRecommendations(id),
     isInWatchlist(Number(id), "movie"),
+    getWatchedCount(Number(id), "movie"),
   ]);
 
   if (!details) {
@@ -53,6 +55,8 @@ export default async function MoviePage({ params }: Props) {
         genres={details.genres}
         videos={videos?.results || []}
         isSaved={isSaved}
+        initialWatchCount={watchInfo.count}
+        initialLastRating={watchInfo.lastRating}
       />
       
       {credits && <CastRow cast={credits.cast} />}
