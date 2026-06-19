@@ -72,14 +72,14 @@ export function Navbar() {
           <div className="hidden lg:block mr-2">
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="relative flex items-center w-full max-w-full lg:max-w-[200px] xl:max-w-xs transition-all duration-300 group cursor-pointer text-left focus:outline-none"
+              className="relative flex items-center w-full lg:w-80 xl:w-[420px] transition-all duration-300 group cursor-pointer text-left focus:outline-none"
             >
               <div className="relative w-full">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-zinc-400 group-hover:text-primary transition-colors">
                   <Search className="w-4 h-4" />
                 </div>
                 <div className="w-full h-10 pl-10 pr-14 bg-white/5 border border-white/10 rounded-full text-sm text-zinc-400 flex items-center group-hover:bg-white/10 group-hover:border-primary/50 transition-all duration-300 shadow-inner shadow-black/20">
-                  Search...
+                  Search movies, TV shows...
                 </div>
                 <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                   <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-zinc-400">
