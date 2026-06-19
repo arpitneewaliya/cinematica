@@ -294,10 +294,10 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
 
           <Button
             onClick={() => setShowFilters(!showFilters)}
-            variant="outline"
+            variant={showFilters ? "default" : "outline"}
             className={cn(
-              "rounded-full border-white/15 px-5 py-2.5 text-xs md:text-sm text-white/90 hover:bg-white/10 hover:text-white transition-all flex items-center gap-2 cursor-pointer",
-              showFilters && "bg-primary border-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+              "rounded-full px-5 py-2.5 text-xs md:text-sm transition-all flex items-center gap-2 cursor-pointer",
+              !showFilters ? "border-white/15 text-white/90 hover:bg-white/10 hover:text-white" : "shadow-lg shadow-primary/25"
             )}
           >
             <SlidersHorizontal className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -319,18 +319,34 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
               initial={{ opacity: 0, height: 0, marginBottom: 0 }}
               animate={{ opacity: 1, height: "auto", marginBottom: 32 }}
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="overflow-hidden"
             >
-              <div className="w-full bg-white/[0.02] border border-white/10 rounded-2xl p-6 backdrop-blur-md">
+              <div className="w-full bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5 rounded-2xl p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <style dangerouslySetInnerHTML={{ __html: `
+                  .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                  }
+                  .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                  }
+                  .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px;
+                  }
+                  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                  }
+                `}} />
+                
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Genres selection */}
                   <div className="lg:col-span-2">
-                    <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      Genres
+                    <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <span>Genres</span>
                       {selectedGenres.length > 0 && (
-                        <span className="text-[10px] md:text-xs bg-primary/20 text-primary border border-primary/30 rounded-full px-2 py-0.5 font-normal normal-case">
-                          {selectedGenres.length} selected
+                        <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 font-semibold normal-case tracking-normal">
+                          {selectedGenres.length} Selected
                         </span>
                       )}
                     </h3>
@@ -342,10 +358,10 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
                             key={genre.id}
                             onClick={() => handleToggleGenre(genre.id)}
                             className={cn(
-                              "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border",
+                              "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-300 border cursor-pointer",
                               isSelected 
-                                ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90" 
-                                : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white"
+                                ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.03]" 
+                                : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/15 hover:scale-[1.03]"
                             )}
                           >
                             {genre.name}
@@ -355,66 +371,90 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
                     </div>
                   </div>
 
-                  {/* Rating & Year dropdowns */}
+                  {/* Rating & Year Section */}
                   <div className="flex flex-col gap-6">
+                    {/* Release Year & Decades */}
                     <div>
-                      <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+                      <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span>Release Time</span>
+                        {selectedYear && (
+                          <span className="text-[9px] bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5 font-semibold normal-case tracking-normal">
+                            Active
+                          </span>
+                        )}
+                      </h3>
+                      
+                      {/* Decades list */}
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {DECADES.map((decade) => {
+                          const isSelected = selectedYear === decade;
+                          return (
+                            <button
+                              key={decade}
+                              onClick={() => handleSelectYear(isSelected ? "" : decade)}
+                              className={cn(
+                                "px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 cursor-pointer",
+                                isSelected
+                                  ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
+                                  : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/15 hover:scale-[1.02]"
+                              )}
+                            >
+                              {decade}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Specific years grid (scrollable) */}
+                      <div className="border border-white/5 rounded-xl p-3 bg-white/[0.01]">
+                        <div className="text-[9px] uppercase text-white/30 tracking-wider mb-2 font-bold">Specific Years</div>
+                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 max-h-[120px] overflow-y-auto pr-1.5 custom-scrollbar">
+                          {YEARS.map((year) => {
+                            const isSelected = selectedYear === year;
+                            return (
+                              <button
+                                key={year}
+                                onClick={() => handleSelectYear(isSelected ? "" : year)}
+                                className={cn(
+                                  "py-1.5 rounded-md text-xs font-medium border text-center transition-all duration-200 cursor-pointer",
+                                  isSelected
+                                    ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 font-semibold"
+                                    : "bg-white/5 border-white/5 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/15"
+                                )}
+                              >
+                                {year}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Minimum Rating */}
+                    <div>
+                      <h3 className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-4">
                         Minimum Rating
                       </h3>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {[0, 8, 7, 6, 5].map((rating) => (
                           <button
                             key={rating}
                             onClick={() => handleSelectRating(rating)}
                             className={cn(
-                              "px-4 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer",
+                              "px-3 py-2 rounded-lg text-xs font-semibold border flex items-center gap-1 transition-all duration-200 cursor-pointer",
                               selectedRating === rating
-                                ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
-                                : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white"
+                                ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
+                                : "bg-white/5 border-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/15 hover:scale-[1.02]"
                             )}
                           >
                             {rating === 0 ? "Any" : (
                               <>
-                                <Star className={cn("w-3 h-3", selectedRating === rating ? "fill-primary-foreground text-primary-foreground" : "fill-yellow-500 text-yellow-500")} />
+                                <Star className={cn("w-3.5 h-3.5", selectedRating === rating ? "fill-primary-foreground text-primary-foreground" : "fill-yellow-500 text-yellow-500")} />
                                 {rating}.0+
                               </>
                             )}
                           </button>
                         ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
-                        Release Year / Decade
-                      </h3>
-                      <div className="relative">
-                        <select
-                          value={selectedYear}
-                          onChange={(e) => handleSelectYear(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs font-medium focus:outline-none focus:border-primary transition-all cursor-pointer appearance-none"
-                        >
-                          <option value="" className="bg-[#121212] text-white">All Years</option>
-                          <optgroup label="Years" className="bg-[#121212] text-gray-400">
-                            {YEARS.map((year) => (
-                              <option key={year} value={year} className="bg-[#121212] text-white">
-                                {year}
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="Decades" className="bg-[#121212] text-gray-400">
-                            {DECADES.map((decade) => (
-                              <option key={decade} value={decade} className="bg-[#121212] text-white">
-                                {decade}
-                              </option>
-                            ))}
-                          </optgroup>
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
                       </div>
                     </div>
                   </div>
