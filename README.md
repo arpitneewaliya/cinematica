@@ -1,89 +1,122 @@
 # Cinematica
 
-A movie and TV show discovery platform powered by the TMDB API. Browse trending titles, search for content, watch trailers, and save items to a personal watchlist.
+A modern, responsive, premium web application for discovering movies and TV shows and curating your personal viewing experience. Powered by the TMDb API, Clerk Authentication, and Neon PostgreSQL.
 
 ## Features
 
-- **Trending carousel** — auto-playing hero slideshow of top-rated movies & TV shows
-- **Browse & filter** — dedicated pages for Movies and TV Shows with Popular / Top Rated tabs
-- **Search** — find any movie or TV show by title
-- **Detail pages** — backdrop, poster, ratings, genres, overview, cast, and trailer playback
-- **Watchlist** — save and manage titles (requires sign-in)
-- **Auth** — sign-in / sign-up via Clerk (modal-based)
-- **Responsive** — fully mobile-friendly with a collapsible hamburger menu
+- 🎬 **Premium Cinematic UI** — forced dark theme (`#0a0a0a`) with high-fidelity glassmorphism, responsive mobile layout, and smooth animations.
+- 🎠 **Auto-playing Hero Carousel** — immersive, auto-playing home slider displaying trending films and television series with custom control.
+- 🔍 **Global Command Palette Search** — a CMD+K style interactive command dialog with real-time autocomplete results.
+- 🗂️ **Advanced Discover & Filter** — dedicated pages for movies and TV shows with tabbed lists (Popular / Top Rated) and multi-criteria filters (genres, minimum ratings, release year, sorting).
+- 🏷️ **Watchlist Management** — save and manage media you want to watch.
+- 📊 **Watched History & Analytics** — log watched titles with custom watch dates, star ratings (1-5), and review notes. Access a detailed dashboard featuring stats on total watch time, average rating, rating distribution charts, and monthly activity.
+- 📁 **Custom Playlists/Lists** — organize media into custom lists (e.g., "Must-Watch Sci-Fi", "Date Night") with custom descriptions.
+- 🔐 **Secure Clerk Authentication** — seamless authentication flow (sign-in/sign-up modals) integrated with PostgreSQL user state syncing.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS 4 + shadcn/ui |
-| Auth | Clerk |
-| Database | PostgreSQL via Prisma |
-| API | TMDB |
-| Animations | Framer Motion, Embla Carousel |
+| Layer | Technology | Description |
+|-------|------------|-------------|
+| **Framework** | Next.js 16.2 (App Router) | React Server & Client Components, Server Actions |
+| **Language** | TypeScript | Strong typing across components, APIs, and actions |
+| **Styling** | Tailwind CSS v4 | CSS variables, modern utility-first layout |
+| **UI Primitives** | Base UI (`@base-ui/react`) + shadcn | Accessible UI primitives and components |
+| **Icons** | Lucide React + React Icons | Harmonious, high-quality svg icons |
+| **Auth** | Clerk (`@clerk/nextjs` v7) | Modern secure user sessions and components |
+| **Database** | Neon PostgreSQL | Serverless SQL database |
+| **ORM** | Prisma v6 | Type-safe schema definitions and client query building |
+| **Animations** | Framer Motion (v12) | Micro-interactions and transition animations |
+| **Carousel** | Embla Carousel (v8) | Auto-playing carousel slideshow hooks |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- A [TMDB API key](https://www.themoviedb.org/settings/api)
-- A [Clerk](https://clerk.com) project (publishable + secret key)
-- A PostgreSQL database URL
+- Node.js 18+ or Bun
+- A [TMDb API key](https://www.themoviedb.org/settings/api)
+- A [Clerk](https://clerk.com) account (Publishable Key + Secret Key)
+- A Neon/PostgreSQL database instance
 
 ### Setup
 
-```bash
-# Install dependencies
-npm install
+1. **Clone the repository and install dependencies:**
+   ```bash
+   npm install
+   ```
 
-# Copy env template and fill in your keys
-cp .env .env.local
-```
+2. **Configure environment variables:**
+   Create a `.env.local` and `.env` file in the root of the project:
+   ```env
+   TMDB_API_KEY=your_tmdb_api_key
 
-Required variables in `.env.local`:
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+   CLERK_SECRET_KEY=sk_test_...
 
-```
-TMDB_API_KEY=
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-DATABASE_URL=
-```
+   # Database Connection String
+   DATABASE_URL="postgresql://user:password@endpoint.neon.tech/dbname?sslmode=require&connect_timeout=30"
+   ```
 
-```bash
-# Generate Prisma client & push schema
-npx prisma generate
-npx prisma db push
+3. **Initialize the database:**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-# Start dev server
-npm run dev
-```
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000).
+5. Open your browser and navigate to `http://localhost:3000`.
 
 ## Project Structure
 
 ```
 app/
-├── page.tsx          # Home — hero + trending rows
-├── movies/           # Movies listing (Popular / Top Rated)
-├── tv/               # TV Shows listing
-├── movie/[id]/       # Movie detail page
-├── tv/[id]/          # TV Show detail page
-├── search/           # Search results
-├── watchlist/        # User's saved items
-└── actions/          # Server actions (watchlist CRUD)
+├── actions/             # Next.js Server Actions
+│   ├── lists.ts         # Create/delete custom lists, manage items
+│   ├── media.ts         # Client-side TMDb pagination loaders
+│   ├── watched.ts       # Watched log triggers, rating & review handlers, stats calculator
+│   └── watchlist.ts     # Watchlist add/remove handlers
+├── lists/               # Custom lists folder pages
+│   ├── page.tsx         # User custom lists landing
+│   └── [id]/            # Detailed custom list items view
+├── movie/[id]/          # Movie details page (cast, trailer, watchlist/log buttons)
+├── tv/[id]/             # TV show details page (cast, trailer, watchlist/log buttons)
+├── movies/              # Discover movies layout (filters, infinite scroll)
+├── tv/                  # Discover TV shows layout (filters, infinite scroll)
+├── watched/             # Watched history feed and interactive stats panel
+├── watchlist/           # User saved items grid
+├── search/              # Grid of search query results
+├── layout.tsx           # Global provider setups and layout
+└── globals.css          # Tailwind CSS v4 styling rules
 components/
-├── Navbar.tsx        # Sticky nav with mobile drawer
-├── Hero.tsx          # Auto-playing hero carousel
-├── MediaCard.tsx     # Poster card (grid item)
-├── MediaRow.tsx      # Horizontal grid section
-├── MediaListTabs.tsx # Tabbed grid (Popular / Top Rated)
-├── SearchBar.tsx     # Search input
-└── media/            # Detail page components (MediaHero, CastRow, TrailerModal, WatchlistButton)
+├── media/               # High-level media modules
+│   ├── MediaHero.tsx    # Header backdrop with action controls
+│   ├── CastRow.tsx      # Horizontal cast profiles
+│   ├── WatchedButton.tsx / LogWatchedModal.tsx  # Logs watched history & reviews
+│   ├── WatchlistButton.tsx / MiniWatchlistButton.tsx  # Watchlist togglers
+│   ├── AddToCustomListButton.tsx / AddToCustomListModal.tsx # List management dialogs
+│   ├── CreateListButton.tsx / CreateListModal.tsx  # Playlists creator
+│   ├── HistoryFeed.tsx  # Watch stats charts and history grid
+│   ├── SearchModal.tsx  # Cmd-palette search modal
+│   └── TrailerModal.tsx # YouTube player dialog
+├── Navbar.tsx           # Site header with Clerk buttons and search bar
+├── SearchBar.tsx        # Triggers SearchModal
+├── Hero.tsx             # Interactive landing carousel
+├── MediaCard.tsx        # Media card with ratings
+├── MediaRow.tsx         # Media scroll section
+└── MediaListTabs.tsx    # Filterable categories tab row
+lib/
+├── prisma.ts            # Prisma client singleton
+└── tmdb.ts              # TMDb query helpers and fetch calls
+prisma/
+└── schema.prisma        # Database schema models (WatchlistItem, WatchedItem, CustomList, CustomListItem)
 ```
+
+## Developer Guidelines
+
+For project conventions (Promise-based search params in Next 16, Neon connection parameters, and coding styles), please consult [AGENTS.md](file:///d:/MY_DEV_PROJECTS/cinematica/AGENTS.md) and [CLAUDE.md](file:///d:/MY_DEV_PROJECTS/cinematica/CLAUDE.md).
 
 ## License
 
