@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X, Star, Film, Tv, Loader2 } from "lucide-react";
+import { Search, X, Star, Film, Tv, Loader2, ArrowLeft } from "lucide-react";
 import { TMDBItem } from "@/lib/tmdb";
 import { searchMediaAction } from "@/app/actions/media";
 import { getImageUrl } from "@/lib/tmdb";
@@ -143,15 +143,22 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex justify-center items-start pt-[10vh] md:pt-[15vh]">
+    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex justify-center items-start md:pt-[15vh]">
       {/* Click outside backdrop to close */}
-      <div className="absolute inset-0 z-0" onClick={onClose} />
+      <div className="absolute inset-0 z-0 hidden md:block" onClick={onClose} />
 
       {/* Modal Card */}
-      <div className="relative z-10 w-full max-w-2xl mx-4 bg-zinc-950/95 border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[70vh] animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full md:max-w-2xl bg-zinc-950 md:bg-zinc-950/95 md:border md:border-white/10 md:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[100dvh] md:h-auto md:max-h-[70vh] animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-bottom-0 md:zoom-in-95 duration-200">
         {/* Input Header */}
-        <div className="relative border-b border-white/5 flex items-center">
-          <div className="absolute left-4 pointer-events-none text-zinc-400">
+        <div className="relative border-b border-white/5 flex items-center bg-zinc-900/50 md:bg-transparent pt-[env(safe-area-inset-top)]">
+          <button 
+            onClick={onClose}
+            className="md:hidden absolute left-2 top-[env(safe-area-inset-top)] bottom-0 my-auto h-10 w-10 flex items-center justify-center text-zinc-400 hover:text-white z-10 rounded-full hover:bg-white/5 transition-colors"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="absolute left-4 pointer-events-none text-zinc-400 hidden md:flex z-10">
             <Search className="w-5 h-5" />
           </div>
           <input
@@ -160,17 +167,18 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search movies, TV shows..."
-            className="w-full bg-transparent h-16 pl-12 pr-12 text-white placeholder-zinc-500 focus:outline-none text-base md:text-lg"
+            className="w-full bg-transparent h-14 md:h-16 pl-12 md:pl-12 pr-12 md:pr-20 text-white placeholder-zinc-500 focus:outline-none text-base md:text-lg"
           />
           {query ? (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-12 text-zinc-400 hover:text-white p-1 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+              className="absolute right-3 md:right-14 top-[env(safe-area-inset-top)] bottom-0 my-auto h-10 w-10 flex items-center justify-center text-zinc-400 hover:text-white rounded-full hover:bg-white/5 transition-colors cursor-pointer z-10"
+              aria-label="Clear search"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 md:w-4 md:h-4" />
             </button>
           ) : null}
-          <div className="absolute right-4 text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700 px-1.5 py-0.5 rounded pointer-events-none">
+          <div className="absolute right-4 text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700 px-1.5 py-0.5 rounded pointer-events-none hidden md:block">
             ESC
           </div>
         </div>
@@ -178,7 +186,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         {/* Results Body */}
         <div 
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto p-2 min-h-[150px] max-h-[50vh] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto p-2 min-h-[150px] md:max-h-[50vh] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-2"
         >
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-12 gap-3 text-zinc-400">
@@ -191,12 +199,12 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
               <Search className="w-8 h-8 opacity-40" />
               <p className="text-sm font-medium">Type to search movies and TV shows</p>
-              <p className="text-xs opacity-60">Press Enter for full search</p>
+              <p className="text-xs opacity-60 hidden md:block">Press Enter for full search</p>
             </div>
           )}
 
           {!isLoading && query.trim() && results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+            <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2 px-4 text-center">
               <X className="w-8 h-8 opacity-40" />
               <p className="text-sm font-medium">No results found for &ldquo;{query}&rdquo;</p>
               <p className="text-xs opacity-60">Try searching for something else or press Enter to run a full search</p>
@@ -226,7 +234,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     className={cn(
                       "flex items-center gap-3 p-2 rounded-xl transition-all duration-150 cursor-pointer border border-transparent",
                       isItemActive 
-                        ? "bg-white/10 border-white/5 scale-[1.01] shadow-[0_4px_20px_rgba(0,0,0,0.3)]" 
+                        ? "bg-white/10 border-white/5 md:scale-[1.01] shadow-[0_4px_20px_rgba(0,0,0,0.3)]" 
                         : "hover:bg-white/5 hover:border-white/5"
                     )}
                   >
@@ -291,8 +299,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           )}
         </div>
 
-        {/* Footer shortcuts helper */}
-        <div className="bg-zinc-900/50 border-t border-white/5 px-4 py-3 flex justify-between items-center text-[10px] text-zinc-500 font-medium">
+        {/* Footer shortcuts helper (desktop only) */}
+        <div className="hidden md:flex bg-zinc-900/50 border-t border-white/5 px-4 py-3 justify-between items-center text-[10px] text-zinc-500 font-medium">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <kbd className="bg-zinc-800 text-zinc-400 px-1 py-0.5 rounded border border-zinc-700 font-mono">↑↓</kbd> to navigate
@@ -309,3 +317,4 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     </div>
   );
 }
+

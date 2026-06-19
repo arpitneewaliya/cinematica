@@ -141,7 +141,7 @@ export function MediaHero({
         {/* Muted background preview loop */}
         {trailer && (
           <div className={cn(
-            "absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out z-10 scale-[1.25]", // scale by 25% to crop YouTube top/bottom player UI overlay
+            "absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none scale-[1.35] md:scale-[1.25]",
             (isVideoLoaded && isPlaying) ? "opacity-[0.80]" : "opacity-0"
           )}>
             <iframe
