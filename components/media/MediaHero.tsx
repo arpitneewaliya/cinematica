@@ -271,7 +271,7 @@ export function MediaHero({
         </div>
       </div>
       {trailer && isVideoLoaded && (
-        <div className="absolute right-4 md:right-8 bottom-4 md:bottom-8 z-30 flex items-center gap-3 animate-in fade-in duration-500">
+        <div className="absolute right-4 md:right-8 top-20 md:top-24 z-30 flex items-center gap-3 animate-in fade-in duration-500">
           <Button
             size="icon"
             variant="outline"
