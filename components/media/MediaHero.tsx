@@ -133,7 +133,7 @@ export function MediaHero({
             priority
             className={cn(
               "object-cover transition-opacity duration-1000 ease-in-out z-0",
-              (isVideoLoaded && isPlaying) ? "opacity-0" : "opacity-50"
+              (isVideoLoaded && isPlaying) ? "opacity-0" : "opacity-80"
             )}
           />
         )}
