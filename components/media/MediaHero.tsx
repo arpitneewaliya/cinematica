@@ -4,11 +4,12 @@ import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { WatchlistButton } from "./WatchlistButton";
 import { WatchedButton } from "./WatchedButton";
 import { AddToCustomListButton } from "./AddToCustomListButton";
 import { TrailerModal } from "./TrailerModal";
-import { Star, Clock, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Star, Clock, Calendar, ChevronDown, ChevronUp, VolumeX, Volume2, Play, Pause } from "lucide-react";
 import { Video } from "@/types/tmdb";
 import { cn } from "@/lib/utils";
 
@@ -52,10 +53,49 @@ export function MediaHero({
   const [isCollapsible, setIsCollapsible] = React.useState(false);
   const textRef = React.useRef<HTMLParagraphElement>(null);
 
-  // Reset expansion state when switching items
-  React.useEffect(() => {
+  const [isMuted, setIsMuted] = React.useState(true);
+  const [isPlaying, setIsPlaying] = React.useState(true);
+  const [isVideoLoaded, setIsVideoLoaded] = React.useState(false);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  // Reset states in render phase when media item id changes
+  const [prevId, setPrevId] = React.useState(id);
+  if (id !== prevId) {
+    setPrevId(id);
     setIsExpanded(false);
-  }, [id]);
+    setIsVideoLoaded(false);
+    setIsMuted(true);
+    setIsPlaying(true);
+  }
+
+  const toggleMute = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const command = isMuted ? "unMute" : "mute";
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: command }),
+        "*"
+      );
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const togglePlay = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const command = isPlaying ? "pauseVideo" : "playVideo";
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: command }),
+        "*"
+      );
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleVideoLoad = () => {
+    // A small delay lets the YouTube iframe settle to prevent visual flashes
+    setTimeout(() => {
+      setIsVideoLoaded(true);
+    }, 500);
+  };
 
   const checkCollapsible = React.useCallback(() => {
     if (textRef.current) {
@@ -81,23 +121,49 @@ export function MediaHero({
   }, [overview, isExpanded, checkCollapsible]);
 
   return (
-    <div className="relative w-full h-auto min-h-[60vh] md:min-h-[70vh] flex flex-col md:flex-row items-center justify-center pt-20 md:pt-24 pb-8 md:pb-12 px-4 md:px-8">
-      {/* Background Image */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden">
+    <div className="relative w-full h-auto min-h-[80vh] md:min-h-[85vh] flex flex-col md:flex-row items-center justify-center pt-[20vh] md:pt-[35vh] pb-8 md:pb-16 px-4 md:px-8">
+      {/* Background Media & Ambient Video Preview */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
+        {/* Static Backdrop Image (visible when trailer is not loaded or playing) */}
         {backdropPath && (
           <Image
             src={getImageUrl(backdropPath, "original")}
             alt={title}
             fill
             priority
-            className="object-cover opacity-30"
+            className={cn(
+              "object-cover transition-opacity duration-1000 ease-in-out z-0",
+              (isVideoLoaded && isPlaying) ? "opacity-0" : "opacity-50"
+            )}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+
+        {/* Muted background preview loop */}
+        {trailer && (
+          <div className={cn(
+            "absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out z-10 scale-[1.25]", // scale by 25% to crop YouTube top/bottom player UI overlay
+            (isVideoLoaded && isPlaying) ? "opacity-[0.80]" : "opacity-0"
+          )}>
+            <iframe
+              ref={iframeRef}
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailer.key}&enablejsapi=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1`}
+              title="Preview Trailer"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              className="w-full h-full pointer-events-none"
+              onLoad={handleVideoLoad}
+            ></iframe>
+          </div>
+        )}
+
+        {/* z-20 overlays to blend it into the dark background and guarantee text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-20" />
       </div>
 
-      <div className="container relative z-10 mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
+      <div className="container relative z-30 mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-end">
         {/* Poster */}
         {posterPath && (
           <div className="relative w-44 h-64 sm:w-56 sm:h-80 md:w-80 md:h-[30rem] shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
@@ -204,6 +270,36 @@ export function MediaHero({
           </div>
         </div>
       </div>
+      {trailer && isVideoLoaded && (
+        <div className="absolute right-4 md:right-8 bottom-4 md:bottom-8 z-30 flex items-center gap-3 animate-in fade-in duration-500">
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={togglePlay}
+            className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105"
+            aria-label={isPlaying ? "Pause trailer" : "Play trailer"}
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5 fill-current" />
+            ) : (
+              <Play className="w-5 h-5 fill-current text-primary" />
+            )}
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={toggleMute}
+            className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105"
+            aria-label={isMuted ? "Unmute preview" : "Mute preview"}
+          >
+            {isMuted ? (
+              <VolumeX className="w-5 h-5" />
+            ) : (
+              <Volume2 className="w-5 h-5 text-primary" />
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

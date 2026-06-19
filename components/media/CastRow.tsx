@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/tmdb";
 import { CastMember } from "@/types/tmdb";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CastRowProps {
@@ -96,7 +96,13 @@ export function CastRow({ cast }: CastRowProps) {
             className="flex overflow-x-auto gap-3 md:gap-4 pb-4 snap-x hide-scrollbar scroll-smooth"
           >
             {topCast.map((actor) => (
-              <div key={actor.id} className="snap-start shrink-0 w-28 sm:w-36 md:w-48 group">
+              <a
+                key={actor.id}
+                href={`https://www.google.com/search?q=${encodeURIComponent(actor.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="snap-start shrink-0 w-28 sm:w-36 md:w-48 group block cursor-pointer transition-all duration-300 hover:-translate-y-1 text-left"
+              >
                 <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 mb-3">
                   {actor.profile_path ? (
                     <Image
@@ -111,15 +117,20 @@ export function CastRow({ cast }: CastRowProps) {
                       No Image
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex flex-col justify-end items-center p-3">
+                    <span className="text-[10px] font-semibold text-primary bg-primary/15 border border-primary/25 rounded-full px-2.5 py-1 flex items-center gap-1 shadow-md">
+                      <Search className="w-2.5 h-2.5" />
+                      Search Cast
+                    </span>
+                  </div>
                 </div>
-                <h4 className="font-semibold text-white text-sm md:text-base truncate">
+                <h4 className="font-semibold text-white text-sm md:text-base truncate group-hover:text-primary transition-colors">
                   {actor.name}
                 </h4>
                 <p className="text-xs md:text-sm text-gray-400 truncate">
                   {actor.character}
                 </p>
-              </div>
+              </a>
             ))}
           </div>
         </div>
