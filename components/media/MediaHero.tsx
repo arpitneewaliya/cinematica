@@ -56,7 +56,44 @@ export function MediaHero({
   const [isMuted, setIsMuted] = React.useState(true);
   const [isPlaying, setIsPlaying] = React.useState(true);
   const [isVideoLoaded, setIsVideoLoaded] = React.useState(false);
+  const [isUserActive, setIsUserActive] = React.useState(true);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  React.useEffect(() => {
+    if (!isVideoLoaded || !isPlaying) {
+      setIsUserActive(true);
+      return;
+    }
+
+    let timeoutId: NodeJS.Timeout;
+
+    const handleActivity = () => {
+      setIsUserActive(true);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsUserActive(false);
+      }, 3000);
+    };
+
+    // Initial timeout trigger
+    timeoutId = setTimeout(() => {
+      setIsUserActive(false);
+    }, 3000);
+
+    const events = ["mousemove", "mousedown", "scroll", "keydown", "touchstart"];
+    events.forEach((event) => {
+      window.addEventListener(event, handleActivity);
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach((event) => {
+        window.removeEventListener(event, handleActivity);
+      });
+    };
+  }, [isPlaying, isVideoLoaded]);
+
+  const shouldHideDetails = isVideoLoaded && isPlaying && !isUserActive;
 
   // Reset states in render phase when media item id changes
   const [prevId, setPrevId] = React.useState(id);
@@ -163,10 +200,15 @@ export function MediaHero({
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-20" />
       </div>
 
-      <div className="container relative z-30 mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-end">
+      <div className="container relative z-30 mx-auto flex flex-col md:flex-row items-start md:items-end">
         {/* Poster */}
         {posterPath && (
-          <div className="relative w-44 h-64 sm:w-56 sm:h-80 md:w-80 md:h-[30rem] shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+          <div className={cn(
+            "relative shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group transition-all duration-700 ease-in-out origin-bottom",
+            shouldHideDetails 
+              ? "opacity-0 scale-95 pointer-events-none w-0 h-0 m-0 border-none select-none" 
+              : "w-44 h-64 sm:w-56 sm:h-80 md:w-80 md:h-[30rem] opacity-100 scale-100 mb-6 md:mb-0 md:mr-12"
+          )}>
             <Image
               src={getImageUrl(posterPath, "w500")}
               alt={title}
@@ -177,101 +219,119 @@ export function MediaHero({
         )}
 
         {/* Details */}
-        <div className="flex flex-col gap-6 max-w-3xl text-center md:text-left">
+        <div className="flex flex-col gap-5 md:gap-6 max-w-3xl text-left w-full">
           <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg tracking-tight">
             {title}
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 text-xs md:text-base font-medium text-gray-300">
-            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-none gap-1">
-              <Star className="w-4 h-4 fill-current" />
-              {rating.toFixed(1)}
-            </Badge>
-            {year && (
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" /> {year}
-              </span>
-            )}
-            {runtime ? (
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" /> {Math.floor(runtime / 60)}h {runtime % 60}m
-              </span>
-            ) : null}
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-            {genres.map((g) => (
-              <Badge key={g.id} variant="outline" className="border-white/20 text-gray-300 backdrop-blur-md">
-                {g.name}
+          <div className={cn(
+            "flex flex-col gap-5 md:gap-6 transition-all duration-700 ease-in-out origin-top w-full",
+            shouldHideDetails 
+              ? "opacity-0 max-h-0 pointer-events-none overflow-hidden translate-y-2 select-none" 
+              : "opacity-100 max-h-[800px] translate-y-0"
+          )}>
+            <div className="flex flex-wrap items-center justify-start gap-2 md:gap-4 text-xs md:text-sm md:text-base font-medium text-gray-300">
+              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-none gap-1">
+                <Star className="w-4 h-4 fill-current" />
+                {rating.toFixed(1)}
               </Badge>
-            ))}
-          </div>
-
-          <div>
-            <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Overview</h3>
-            <p
-              ref={textRef}
-              className={cn(
-                "text-sm md:text-lg text-gray-300 leading-relaxed transition-all duration-300",
-                isExpanded ? "line-clamp-none" : "line-clamp-4 md:line-clamp-none"
+              {year && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" /> {year}
+                </span>
               )}
-            >
-              {overview}
-            </p>
-            {isCollapsible && (
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-3 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-1 mx-auto md:hidden transition-colors cursor-pointer py-1.5 px-3.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 shadow-lg"
-                aria-label={isExpanded ? "Collapse overview" : "Expand overview"}
-              >
-                {isExpanded ? (
-                  <>
-                    Read Less <ChevronUp className="w-3.5 h-3.5" />
-                  </>
-                ) : (
-                  <>
-                    Read More <ChevronDown className="w-3.5 h-3.5" />
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+              {runtime ? (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" /> {Math.floor(runtime / 60)}h {runtime % 60}m
+                </span>
+              ) : null}
+            </div>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
-            {trailer && <TrailerModal video={trailer} />}
-            <WatchlistButton
-              mediaId={id}
-              mediaType={type}
-              title={title}
-              posterPath={posterPath}
-              backdropPath={backdropPath}
-              releaseDate={releaseDate}
-              initialIsSaved={isSaved}
-            />
-            <WatchedButton
-              mediaId={id}
-              mediaType={type}
-              title={title}
-              posterPath={posterPath}
-              backdropPath={backdropPath}
-              releaseDate={releaseDate}
-              runtime={runtime}
-              initialWatchCount={initialWatchCount}
-              initialLastRating={initialLastRating}
-            />
-            <AddToCustomListButton
-              mediaId={id}
-              mediaType={type}
-              title={title}
-              posterPath={posterPath}
-              backdropPath={backdropPath}
-              releaseDate={releaseDate}
-            />
+            <div className="flex flex-wrap items-center justify-start gap-2">
+              {genres.map((g) => (
+                <Badge key={g.id} variant="outline" className="border-white/20 text-gray-300 backdrop-blur-md">
+                  {g.name}
+                </Badge>
+              ))}
+            </div>
+
+            <div>
+              <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Overview</h3>
+              <p
+                ref={textRef}
+                className={cn(
+                  "text-sm md:text-lg text-gray-300 leading-relaxed transition-all duration-300",
+                  isExpanded ? "line-clamp-none" : "line-clamp-4 md:line-clamp-none"
+                )}
+              >
+                {overview}
+              </p>
+              {isCollapsible && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="mt-3 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer py-1.5 px-3.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 shadow-lg"
+                  aria-label={isExpanded ? "Collapse overview" : "Expand overview"}
+                >
+                  {isExpanded ? (
+                    <>
+                      Read Less <ChevronUp className="w-3.5 h-3.5" />
+                    </>
+                  ) : (
+                    <>
+                      Read More <ChevronDown className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-start gap-3 md:gap-4 pt-4 w-full sm:w-auto">
+              {trailer && (
+                <TrailerModal 
+                  video={trailer} 
+                  className="col-span-2 sm:col-span-auto w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+                />
+              )}
+              <WatchlistButton
+                mediaId={id}
+                mediaType={type}
+                title={title}
+                posterPath={posterPath}
+                backdropPath={backdropPath}
+                releaseDate={releaseDate}
+                initialIsSaved={isSaved}
+                className="w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+              />
+              <WatchedButton
+                mediaId={id}
+                mediaType={type}
+                title={title}
+                posterPath={posterPath}
+                backdropPath={backdropPath}
+                releaseDate={releaseDate}
+                runtime={runtime}
+                initialWatchCount={initialWatchCount}
+                initialLastRating={initialLastRating}
+                className="w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+              />
+              <AddToCustomListButton
+                mediaId={id}
+                mediaType={type}
+                title={title}
+                posterPath={posterPath}
+                backdropPath={backdropPath}
+                releaseDate={releaseDate}
+                className="col-span-2 sm:col-span-auto w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+              />
+            </div>
           </div>
         </div>
       </div>
       {trailer && isVideoLoaded && (
-        <div className="absolute right-4 md:right-8 top-20 md:top-24 z-30 flex items-center gap-3 animate-in fade-in duration-500">
+        <div className={cn(
+          "absolute right-4 md:right-8 top-20 md:top-24 z-30 flex items-center gap-3 animate-in fade-in duration-500 transition-all duration-700 ease-in-out",
+          shouldHideDetails ? "opacity-0 pointer-events-none -translate-y-2 select-none" : "opacity-100 translate-y-0"
+        )}>
           <Button
             size="icon"
             variant="outline"

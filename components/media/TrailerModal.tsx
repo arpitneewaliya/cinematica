@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, X } from "lucide-react";
 import { Video } from "@/types/tmdb";
+import { cn } from "@/lib/utils";
 
 interface TrailerModalProps {
   video: Video;
+  className?: string;
 }
 
-export function TrailerModal({ video }: TrailerModalProps) {
+export function TrailerModal({ video, className }: TrailerModalProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!video || video.site !== "YouTube") return null;
@@ -18,7 +20,10 @@ export function TrailerModal({ video }: TrailerModalProps) {
     <>
       <Button
         size="default"
-        className="bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-5 md:px-8 text-sm md:text-base transition-transform hover:scale-105"
+        className={cn(
+          "bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-5 md:px-8 text-sm md:text-base transition-transform hover:scale-105",
+          className
+        )}
         onClick={() => setIsOpen(true)}
       >
         <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Star } from "lucide-react";
 import { LogWatchedModal } from "./LogWatchedModal";
 import { useAuth } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
 
 interface WatchedButtonProps {
   mediaId: number;
@@ -16,6 +17,7 @@ interface WatchedButtonProps {
   runtime?: number | null;
   initialWatchCount: number;
   initialLastRating?: number | null;
+  className?: string;
 }
 
 export function WatchedButton({
@@ -28,6 +30,7 @@ export function WatchedButton({
   runtime,
   initialWatchCount,
   initialLastRating = null,
+  className,
 }: WatchedButtonProps) {
   const [watchCount, setWatchCount] = useState(initialWatchCount);
   const [lastRating, setLastRating] = useState<number | null>(initialLastRating);
@@ -53,11 +56,13 @@ export function WatchedButton({
       <Button
         variant={isWatched ? "secondary" : "outline"}
         onClick={handleOpenModal}
-        className={`gap-2 font-semibold rounded-full px-6 transition-all duration-300 ${
+        className={cn(
+          "gap-2 font-semibold rounded-full px-6 transition-all duration-300",
           isWatched
             ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/5 hover:scale-[1.02] active:scale-95"
-            : "bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white hover:scale-[1.02] active:scale-95"
-        }`}
+            : "bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white hover:scale-[1.02] active:scale-95",
+          className
+        )}
       >
         <Eye className={`w-5 h-5 transition-transform ${isWatched ? "fill-emerald-400/20 scale-110" : ""}`} />
         <span>

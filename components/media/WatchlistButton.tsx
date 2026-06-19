@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Plus } from "lucide-react";
 import { addToWatchlist, removeFromWatchlist } from "@/app/actions/watchlist";
 import { useAuth } from "@clerk/nextjs";
-
+import { cn } from "@/lib/utils";
 
 interface WatchlistButtonProps {
   mediaId: number;
@@ -15,6 +15,7 @@ interface WatchlistButtonProps {
   backdropPath?: string | null;
   releaseDate?: string | null;
   initialIsSaved: boolean;
+  className?: string;
 }
 
 export function WatchlistButton({
@@ -25,6 +26,7 @@ export function WatchlistButton({
   backdropPath,
   releaseDate,
   initialIsSaved,
+  className,
 }: WatchlistButtonProps) {
   const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [isPending, startTransition] = useTransition();
@@ -65,11 +67,13 @@ export function WatchlistButton({
   return (
     <Button
       variant={isSaved ? "default" : "outline"}
-      className={`gap-2 font-semibold rounded-full px-6 transition-all duration-300 ${
+      className={cn(
+        "gap-2 font-semibold rounded-full px-6 transition-all duration-300",
         isSaved
           ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
-          : "bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white"
-      }`}
+          : "bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white",
+        className
+      )}
       onClick={handleToggle}
       disabled={isPending}
     >

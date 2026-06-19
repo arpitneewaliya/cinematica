@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ListPlus } from "lucide-react";
 import { AddToCustomListModal } from "./AddToCustomListModal";
 import { useAuth } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
 
 interface AddToCustomListButtonProps {
   mediaId: number;
@@ -13,6 +14,7 @@ interface AddToCustomListButtonProps {
   posterPath?: string | null;
   backdropPath?: string | null;
   releaseDate?: string | null;
+  className?: string;
 }
 
 export function AddToCustomListButton({
@@ -22,6 +24,7 @@ export function AddToCustomListButton({
   posterPath,
   backdropPath,
   releaseDate,
+  className,
 }: AddToCustomListButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { isSignedIn } = useAuth();
@@ -39,7 +42,10 @@ export function AddToCustomListButton({
       <Button
         variant="outline"
         onClick={handleOpen}
-        className="gap-2 font-semibold rounded-full px-6 bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white hover:scale-[1.02] active:scale-95 transition-all duration-300"
+        className={cn(
+          "gap-2 font-semibold rounded-full px-6 bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white hover:scale-[1.02] active:scale-95 transition-all duration-300",
+          className
+        )}
       >
         <ListPlus className="w-5 h-5 text-gray-300" />
         Add to List
