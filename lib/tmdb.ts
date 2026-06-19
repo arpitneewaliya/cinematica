@@ -161,10 +161,64 @@ export async function fetchMediaChunkData(
   const responses = await Promise.all(pagePromises);
   
   // Flatten results and map media_type
-  let allItems = responses.flatMap(res => res.results || []).map(item => ({ ...item, media_type: mediaType }));
+  const allItems = responses.flatMap(res => res.results || []).map(item => ({ ...item, media_type: mediaType }));
   
   // Calculate relative start index in the combined array
   const relativeStartIndex = startIndex % 20;
   
   return allItems.slice(relativeStartIndex, relativeStartIndex + chunkSize);
+}
+
+export async function discoverMedia(
+  mediaType: 'movie' | 'tv',
+  sortBy: 'popularity.desc' | 'vote_average.desc',
+  page: number,
+  genres: number[] = [],
+  minRating: number = 0,
+  year: string = ''
+): Promise<TMDBItem[]> {
+  let endpoint = `/discover/${mediaType}?page=${page}`;
+
+  if (sortBy === 'popularity.desc') {
+    endpoint += '&sort_by=popularity.desc';
+  } else {
+    // For top rated, sort by vote average and require minimum 100 votes to filter noise
+    endpoint += '&sort_by=vote_average.desc&vote_count.gte=100';
+  }
+
+  if (genres.length > 0) {
+    // TMDb uses pipe | for OR matching
+    endpoint += `&with_genres=${genres.join('|')}`;
+  }
+
+  if (minRating > 0) {
+    endpoint += `&vote_average.gte=${minRating}`;
+  }
+
+  if (year) {
+    if (year.endsWith('s')) {
+      // Decade filter, e.g. "1990s"
+      const startDecade = parseInt(year.substring(0, 4), 10);
+      const endDecade = startDecade + 9;
+      
+      const dateGte = `${startDecade}-01-01`;
+      const dateLte = `${endDecade}-12-31`;
+      
+      if (mediaType === 'movie') {
+        endpoint += `&primary_release_date.gte=${dateGte}&primary_release_date.lte=${dateLte}`;
+      } else {
+        endpoint += `&first_air_date.gte=${dateGte}&first_air_date.lte=${dateLte}`;
+      }
+    } else {
+      // Specific year filter
+      if (mediaType === 'movie') {
+        endpoint += `&primary_release_year=${year}`;
+      } else {
+        endpoint += `&first_air_date_year=${year}`;
+      }
+    }
+  }
+
+  const response = await fetchFromTMDB<{ results: TMDBItem[] }>(endpoint);
+  return (response.results || []).map(item => ({ ...item, media_type: mediaType }));
 }
