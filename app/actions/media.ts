@@ -1,6 +1,6 @@
 "use server";
 
-import { TMDBItem, fetchMediaChunkData, discoverMedia } from "@/lib/tmdb";
+import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia } from "@/lib/tmdb";
 
 export async function fetchMediaChunk(
   mediaType: "movie" | "tv",
@@ -29,6 +29,16 @@ export async function fetchFilteredMedia(
     return items;
   } catch (error) {
     console.error("Error fetching filtered media:", error);
+    return [];
+  }
+}
+
+export async function searchMediaAction(query: string): Promise<TMDBItem[]> {
+  try {
+    const items = await searchMedia(query);
+    return items;
+  } catch (error) {
+    console.error("Error searching media:", error);
     return [];
   }
 }

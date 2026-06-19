@@ -1,16 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Bookmark, Film, Tv, Menu, X, Search, Eye, ListPlus } from "lucide-react";
-import { SearchBar } from "./SearchBar";
+import { SearchModal } from "./media/SearchModal";
 
 export function Navbar() {
   const { userId } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [kbdText, setKbdText] = useState("Ctrl+K");
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined") {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      if (isMac) {
+        setTimeout(() => {
+          setKbdText("⌘K");
+        }, 0);
+      }
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Open modal on Ctrl+K or Cmd+K
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/40 backdrop-blur-2xl transition-all duration-300">
@@ -45,13 +70,30 @@ export function Navbar() {
         {/* Right side Actions */}
         <div className="flex items-center gap-3">
           <div className="hidden lg:block mr-2">
-            <SearchBar />
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="relative flex items-center w-full max-w-full lg:max-w-[200px] xl:max-w-xs transition-all duration-300 group cursor-pointer text-left focus:outline-none"
+            >
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-zinc-400 group-hover:text-primary transition-colors">
+                  <Search className="w-4 h-4" />
+                </div>
+                <div className="w-full h-10 pl-10 pr-14 bg-white/5 border border-white/10 rounded-full text-sm text-zinc-400 flex items-center group-hover:bg-white/10 group-hover:border-primary/50 transition-all duration-300 shadow-inner shadow-black/20">
+                  Search...
+                </div>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                  <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-zinc-400">
+                    {kbdText}
+                  </kbd>
+                </div>
+              </div>
+            </button>
           </div>
 
           <div className="lg:hidden mr-1">
             <button
-              onClick={() => setMobileSearchOpen(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 active:scale-90"
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 active:scale-90 cursor-pointer"
               aria-label="Open search"
             >
               <Search className="w-5 h-5" />
@@ -114,19 +156,8 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Search Overlay */}
-      {mobileSearchOpen && (
-        <div className="absolute inset-0 bg-black/95 backdrop-blur-3xl z-50 flex items-center px-4 gap-3 lg:hidden animate-in fade-in duration-200">
-          <SearchBar autoFocus onSearchSubmit={() => setMobileSearchOpen(false)} />
-          <button 
-            onClick={() => setMobileSearchOpen(false)} 
-            className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all duration-300 active:scale-90"
-            aria-label="Close search"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-      )}
+      {/* Search Modal (Ctrl+K Command Palette) */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
