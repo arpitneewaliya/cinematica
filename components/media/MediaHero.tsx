@@ -112,13 +112,23 @@ export function MediaHero({
 
   const togglePlay = () => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      const command = isPlaying ? "pauseVideo" : "playVideo";
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: "command", func: command }),
-        "*"
-      );
-      setIsPlaying(!isPlaying);
+      if (isPlaying) {
+        // Pausing: mute the video so sound stops, but let playback continue at opacity-0
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: "command", func: "mute" }),
+          "*"
+        );
+      } else {
+        // Playing: unmute if the user hasn't explicitly muted
+        if (!isMuted) {
+          iframeRef.current.contentWindow.postMessage(
+            JSON.stringify({ event: "command", func: "unMute" }),
+            "*"
+          );
+        }
+      }
     }
+    setIsPlaying(!isPlaying);
   };
 
   const handleVideoLoad = () => {
@@ -152,7 +162,7 @@ export function MediaHero({
           {trailer && (
             <div className={cn(
               "absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none scale-[1.35] md:scale-[1.25]",
-              (isVideoLoaded && isPlaying) ? "opacity-[0.80]" : "opacity-0"
+              (isVideoLoaded && isPlaying) ? "opacity-100" : "opacity-0"
             )}>
               <iframe
                 ref={iframeRef}
@@ -169,8 +179,8 @@ export function MediaHero({
           )}
 
           {/* overlays to blend it into the dark background and guarantee text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent z-20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent z-20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/30 via-transparent to-transparent z-20" />
         </div>
 
         <div className="container relative z-30 mx-auto px-4 md:px-8 w-full">

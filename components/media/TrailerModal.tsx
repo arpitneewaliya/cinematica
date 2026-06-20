@@ -31,15 +31,22 @@ export function TrailerModal({ video, className }: TrailerModalProps) {
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl shadow-primary/20 ring-1 ring-white/10 animate-in zoom-in-95 duration-300">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-2 sm:p-4 backdrop-blur-md animate-in fade-in duration-300"
+          onClick={() => setIsOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-5xl aspect-video rounded-xl overflow-visible shadow-2xl shadow-primary/20 border border-white/10 animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+              className="absolute -top-12 right-0 sm:-top-14 sm:right-0 z-50 rounded-full w-10 h-10 border-white/10 bg-black/60 hover:bg-black text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105 active:scale-95"
               onClick={() => setIsOpen(false)}
+              aria-label="Close trailer"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </Button>
             <iframe
               width="100%"
@@ -49,7 +56,7 @@ export function TrailerModal({ video, className }: TrailerModalProps) {
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="w-full h-full"
+              className="w-full h-full rounded-xl"
             ></iframe>
           </div>
         </div>
