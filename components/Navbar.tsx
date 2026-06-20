@@ -65,15 +65,15 @@ export function Navbar() {
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-2">
-            <Link 
-              href="/movies" 
+            <Link
+              href="/movies"
               className="relative px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 group flex items-center gap-2 rounded-full hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-95"
             >
               <Film className="w-4 h-4 transition-transform group-hover:scale-110" />
               Movies
             </Link>
-            <Link 
-              href="/tv" 
+            <Link
+              href="/tv"
               className="relative px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 group flex items-center gap-2 rounded-full hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-95"
             >
               <Tv className="w-4 h-4 transition-transform group-hover:scale-110" />
@@ -139,24 +139,24 @@ export function Navbar() {
                       transition={{ duration: 0.15, ease: "easeOut" }}
                       className="absolute right-2 top-full mt-2 w-52 rounded-2xl bg-zinc-950/90 border border-white/10 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-2 z-50 flex flex-col gap-1"
                     >
-                      <Link 
-                        href="/watched" 
+                      <Link
+                        href="/watched"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 rounded-xl hover:bg-white/5 active:scale-98 group"
                       >
                         <Eye className="w-4 h-4 text-zinc-400 group-hover:text-primary transition-colors duration-200" />
                         Watched
                       </Link>
-                      <Link 
-                        href="/lists" 
+                      <Link
+                        href="/lists"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 rounded-xl hover:bg-white/5 active:scale-98 group"
                       >
                         <ListPlus className="w-4 h-4 text-zinc-400 group-hover:text-primary transition-colors duration-200" />
                         Lists
                       </Link>
-                      <Link 
-                        href="/watchlist" 
+                      <Link
+                        href="/watchlist"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 rounded-xl hover:bg-white/5 active:scale-98 group"
                       >

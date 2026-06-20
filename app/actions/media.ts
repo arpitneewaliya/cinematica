@@ -1,6 +1,7 @@
 "use server";
 
-import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia } from "@/lib/tmdb";
+import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, getMovieVideos, getTVVideos } from "@/lib/tmdb";
+import { Video } from "@/types/tmdb";
 
 export async function fetchMediaChunk(
   mediaType: "movie" | "tv",
@@ -40,5 +41,28 @@ export async function searchMediaAction(query: string): Promise<TMDBItem[]> {
   } catch (error) {
     console.error("Error searching media:", error);
     return [];
+  }
+}
+
+export async function getMediaTrailerAction(
+  id: number,
+  mediaType: "movie" | "tv"
+): Promise<Video | null> {
+  try {
+    const data = mediaType === "movie"
+      ? await getMovieVideos(String(id))
+      : await getTVVideos(String(id));
+
+    if (!data || !data.results) return null;
+
+    // Find YouTube trailer or any YouTube video
+    const trailer = data.results.find(
+      (v) => v.type === "Trailer" && v.site === "YouTube"
+    ) || data.results.find((v) => v.site === "YouTube");
+
+    return trailer || null;
+  } catch (error) {
+    console.error("Error fetching media trailer:", error);
+    return null;
   }
 }

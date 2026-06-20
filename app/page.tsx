@@ -23,7 +23,7 @@ export default async function Home() {
   }
 
   const hasData = movies.length > 0 || tvShows.length > 0;
-  
+
   // Combine and get top 5 for the slideshow
   const topHeroItems = [...movies, ...tvShows]
     .sort((a, b) => b.vote_average - a.vote_average)

@@ -2,95 +2,262 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { TMDBItem, getImageUrl } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
-import { Play, Plus, Info } from "lucide-react";
+import { Play, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { getMediaTrailerAction } from "@/app/actions/media";
+import { Video } from "@/types/tmdb";
 
 interface HeroProps {
   items: TMDBItem[];
 }
 
+const MOVIE_GENRES: Record<number, string> = {
+  28: "Action",
+  12: "Adventure",
+  16: "Animation",
+  35: "Comedy",
+  80: "Crime",
+  99: "Documentary",
+  18: "Drama",
+  10751: "Family",
+  14: "Fantasy",
+  36: "History",
+  27: "Horror",
+  10402: "Music",
+  9648: "Mystery",
+  10749: "Romance",
+  878: "Sci-Fi",
+  10770: "TV Movie",
+  53: "Thriller",
+  10752: "War",
+  37: "Western",
+};
+
+const TV_GENRES: Record<number, string> = {
+  10759: "Action & Adventure",
+  16: "Animation",
+  35: "Comedy",
+  80: "Crime",
+  99: "Documentary",
+  18: "Drama",
+  10751: "Family",
+  9648: "Mystery",
+  10762: "Kids",
+  10763: "News",
+  10764: "Reality",
+  10765: "Sci-Fi",
+  10766: "Soap",
+  10767: "Talk",
+  10768: "War & Politics",
+  37: "Western",
+};
+
+function getGenreNames(genreIds?: number[], mediaType?: "movie" | "tv"): string {
+  if (!genreIds || genreIds.length === 0) return "";
+  const map = mediaType === "tv" ? TV_GENRES : MOVIE_GENRES;
+  return genreIds
+    .map((id) => map[id])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(" • ");
+}
+
 export function Hero({ items }: HeroProps) {
   if (!items || items.length === 0) return null;
 
+  const router = useRouter();
   const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
+    Autoplay({ delay: 6000, stopOnInteraction: true })
   );
 
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [loadingTrailerId, setLoadingTrailerId] = React.useState<number | null>(null);
+  const [selectedTrailer, setSelectedTrailer] = React.useState<Video | null>(null);
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  const handleWatchTrailer = async (id: number, mediaType: "movie" | "tv") => {
+    setLoadingTrailerId(id);
+    try {
+      const trailer = await getMediaTrailerAction(id, mediaType);
+      if (trailer) {
+        setSelectedTrailer(trailer);
+      } else {
+        // Fallback: navigate to details page if no trailer is found
+        router.push(`/${mediaType}/${id}`);
+      }
+    } catch (err) {
+      console.error("Failed to load trailer:", err);
+      router.push(`/${mediaType}/${id}`);
+    } finally {
+      setLoadingTrailerId(null);
+    }
+  };
+
   return (
-    <Carousel
-      plugins={[plugin.current]}
-      className="w-full h-[60vh] md:h-[80vh] min-h-[400px] md:min-h-[600px] max-h-[900px]"
-      opts={{ loop: true }}
-    >
-      <CarouselContent className="h-full">
-        {items.map((movie, index) => {
-          const title = movie.title || movie.name;
-          return (
-            <CarouselItem key={movie.id} className="relative w-full h-[60vh] md:h-[80vh] min-h-[400px] md:min-h-[600px] max-h-[900px]">
-              {/* Background Image */}
-              <div className="absolute inset-0 w-full h-full">
-                <Image
-                  src={getImageUrl(movie.backdrop_path, 'original')}
-                  alt={title || "Hero background"}
-                  fill
-                  priority={index === 0}
-                  className="object-cover"
-                />
-                {/* Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent" />
-              </div>
+    <>
+      <Carousel
+        setApi={setApi}
+        plugins={[plugin.current]}
+        className="w-full h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[650px] max-h-[900px] bg-[#0a0a0a]"
+        opts={{ loop: true }}
+      >
+        <CarouselContent className="h-full">
+          {items.map((movie, index) => {
+            const title = movie.title || movie.name;
+            const isActive = index === current;
+            const genresString = getGenreNames(movie.genre_ids, movie.media_type);
 
-              {/* Content */}
-              <div className="relative h-full flex items-end pb-10 md:pb-20 container mx-auto px-4 md:px-8 z-10">
-                <div className="max-w-3xl space-y-3 md:space-y-6">
-                  <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 text-xs md:text-sm font-semibold tracking-wider uppercase backdrop-blur-md">
-                    #{index + 1} Trending
-                  </Badge>
-                  
-                  <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white drop-shadow-xl tracking-tight">
-                    {title}
-                  </h1>
-                  
-                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-base font-medium text-gray-300 drop-shadow-md">
-                    <span className="flex items-center gap-1 text-yellow-400">
-                      <StarIcon className="w-3 h-3 md:w-4 md:h-4 fill-current" />
-                      {movie.vote_average.toFixed(1)} Rating
-                    </span>
-                    <span>•</span>
-                    <span>{new Date(movie.release_date || movie.first_air_date || '').getFullYear()}</span>
-                    <span>•</span>
-                    <span className="uppercase">{movie.media_type}</span>
-                  </div>
+            return (
+              <CarouselItem
+                key={movie.id}
+                className="relative w-full h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[650px] max-h-[900px] overflow-hidden select-none"
+              >
+                {/* Clean backdrop image background (no blur, no silhouette cutout) */}
+                <div className="absolute inset-0 w-full h-full">
+                  <Image
+                    src={getImageUrl(movie.backdrop_path, "original")}
+                    alt={title || "Hero background"}
+                    fill
+                    priority={index === 0}
+                    className="object-cover transition-opacity duration-1000"
+                  />
 
-                  <p className="hidden sm:block text-base md:text-xl text-gray-200 line-clamp-2 md:line-clamp-4 drop-shadow-lg leading-relaxed max-w-2xl">
-                    {movie.overview}
-                  </p>
+                  {/* Dark gradients to seamlessly blend into #0a0a0a and guarantee text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/75 via-[#0a0a0a]/35 to-transparent" />
+                </div>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-2 md:pt-4">
-                    <Link href={`/${movie.media_type}/${movie.id}`}>
-                      <Button size="default" className="bg-white text-black hover:bg-white/90 gap-2 font-semibold rounded-full px-5 md:px-8 text-sm md:text-base transition-transform hover:scale-105">
-                        <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
-                        More Info
-                      </Button>
-                    </Link>
+                {/* Text content & single Watch Trailer button */}
+                <div className="relative h-full flex items-center container mx-auto px-6 md:px-12 z-20">
+                  <div className="max-w-2xl space-y-4 md:space-y-6 text-left">
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+                      transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+                      className="space-y-4 md:space-y-6"
+                    >
+                      {/* Trending Badge */}
+                      <Badge
+                        variant="secondary"
+                        className="bg-white/10 text-white border border-white/15 text-xs md:text-sm font-semibold tracking-wider uppercase backdrop-blur-md px-3.5 py-1 rounded-md"
+                      >
+                        #{index + 1} Trending
+                      </Badge>
+
+                      {/* Title */}
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight uppercase leading-[1.05] drop-shadow-md">
+                        {title}
+                      </h1>
+
+                      {/* Metadata Line */}
+                      <div className="flex flex-wrap items-center gap-2 md:gap-3.5 text-xs md:text-sm font-semibold text-gray-300">
+                        <span className="flex items-center gap-1 text-blue-400">
+                          <StarIcon className="w-3.5 h-3.5 fill-current" />
+                          {movie.vote_average.toFixed(1)}
+                        </span>
+                        <span className="text-gray-600">•</span>
+                        <span>
+                          {new Date(
+                            movie.release_date || movie.first_air_date || ""
+                          ).getFullYear()}
+                        </span>
+                        {genresString && (
+                          <>
+                            <span className="text-gray-600">•</span>
+                            <span>{genresString}</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Overview description */}
+                      <p className="text-sm sm:text-base md:text-lg text-gray-300 line-clamp-3 leading-relaxed max-w-xl drop-shadow-md">
+                        {movie.overview}
+                      </p>
+
+                      {/* Action buttons - Single Watch Trailer button */}
+                      <div className="flex flex-wrap items-center gap-4 pt-2">
+                        <Button
+                          size="default"
+                          disabled={loadingTrailerId === movie.id}
+                          onClick={() => handleWatchTrailer(movie.id, movie.media_type)}
+                          className="bg-white text-black hover:bg-white/90 gap-2 font-bold rounded-full px-6 md:px-8 py-5 md:py-6 text-sm md:text-base transition-transform hover:scale-105 shadow-md shadow-white/5 cursor-pointer disabled:opacity-80"
+                        >
+                          {loadingTrailerId === movie.id ? (
+                            <>
+                              <div className="w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
+                              Watch Trailer
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
-              </div>
-            </CarouselItem>
-          );
-        })}
-      </CarouselContent>
-    </Carousel>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+      </Carousel>
+
+      {/* Dynamic Trailer Player Modal Overlay */}
+      {selectedTrailer && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-2 sm:p-4 backdrop-blur-md animate-in fade-in duration-300"
+          onClick={() => setSelectedTrailer(null)}
+        >
+          <div
+            className="relative w-full max-w-5xl aspect-video rounded-xl overflow-visible shadow-2xl shadow-primary/20 border border-white/10 animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute -top-12 right-0 sm:-top-14 sm:right-0 z-50 rounded-full w-10 h-10 border-white/10 bg-black/60 hover:bg-black text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105 active:scale-95"
+              onClick={() => setSelectedTrailer(null)}
+              aria-label="Close trailer"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${selectedTrailer.key}?autoplay=1`}
+              title="Trailer"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full rounded-xl"
+            ></iframe>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -101,7 +268,7 @@ function StarIcon(props: React.SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
