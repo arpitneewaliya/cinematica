@@ -37,7 +37,8 @@ export const metadata: Metadata = {
 };
 
 import { Navbar } from "@/components/Navbar";
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs';
+import { CountryProvider } from "@/components/providers/CountryProvider";
 
 export default function RootLayout({
   children,
@@ -51,8 +52,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
       >
         <body className="min-h-full flex flex-col">
-          <Navbar />
-          {children}
+          <CountryProvider>
+            <Navbar />
+            {children}
+          </CountryProvider>
         </body>
       </html>
     </ClerkProvider>

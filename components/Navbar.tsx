@@ -7,6 +7,7 @@ import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Bookmark, Film, Tv, Menu, X, Search, Eye, ListPlus, ChevronDown, Library } from "lucide-react";
 import { SearchModal } from "./media/SearchModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCountry, COUNTRIES } from "@/components/providers/CountryProvider";
 
 export function Navbar() {
   const { userId } = useAuth();
@@ -15,11 +16,17 @@ export function Navbar() {
   const [kbdText, setKbdText] = useState("Ctrl+K");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { country, setCountry } = useCountry();
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const countryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+        setIsCountryOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -113,6 +120,60 @@ export function Navbar() {
             >
               <Search className="w-5 h-5" />
             </button>
+          </div>
+
+          {/* Country Switcher */}
+          <div className="relative z-50 mr-1" ref={countryRef}>
+            <button
+              onClick={() => setIsCountryOpen(!isCountryOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-white/5 border border-white/10 hover:border-white/20 active:scale-95 cursor-pointer"
+              aria-label="Switch streaming country"
+              aria-expanded={isCountryOpen}
+              aria-haspopup="true"
+            >
+              <span className="text-base leading-none">
+                {COUNTRIES.find((c) => c.code === country)?.flag || "🇺🇸"}
+              </span>
+              <span className="hidden xs:inline uppercase text-[10px] md:text-xs text-zinc-400 font-medium">
+                {country}
+              </span>
+              <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-300 ${isCountryOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            <AnimatePresence>
+              {isCountryOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="absolute right-0 top-full mt-2 w-48 max-h-72 overflow-y-auto rounded-2xl bg-zinc-950/95 border border-white/10 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-2 z-50 flex flex-col gap-1 hide-scrollbar"
+                >
+                  {COUNTRIES.map((c) => (
+                    <button
+                      key={c.code}
+                      onClick={() => {
+                        setCountry(c.code);
+                        setIsCountryOpen(false);
+                      }}
+                      className={`flex items-center justify-between w-full px-3.5 py-2 text-xs font-semibold rounded-xl text-left transition-all duration-200 cursor-pointer ${
+                        country === c.code
+                          ? "bg-white/10 text-white"
+                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{c.flag}</span>
+                        <span>{c.name}</span>
+                      </span>
+                      {country === c.code && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      )}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {userId ? (

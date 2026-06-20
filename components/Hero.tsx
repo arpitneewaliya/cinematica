@@ -15,8 +15,9 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { getMediaTrailerAction } from "@/app/actions/media";
+import { getMediaTrailerAction, getWatchProvidersAction } from "@/app/actions/media";
 import { Video } from "@/types/tmdb";
+import { useCountry } from "@/components/providers/CountryProvider";
 
 interface HeroProps {
   items: TMDBItem[];
@@ -85,6 +86,33 @@ export function Hero({ items }: HeroProps) {
   const [current, setCurrent] = React.useState(0);
   const [loadingTrailerId, setLoadingTrailerId] = React.useState<number | null>(null);
   const [selectedTrailer, setSelectedTrailer] = React.useState<Video | null>(null);
+
+  const { country } = useCountry();
+  const [watchProviders, setWatchProviders] = React.useState<Record<number, any>>({});
+  const [loadingProviders, setLoadingProviders] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchAllProviders = async () => {
+      setLoadingProviders(true);
+      const results: Record<number, any> = {};
+      try {
+        const promises = items.map(async (item) => {
+          const data = await getWatchProvidersAction(item.id, item.media_type, country);
+          if (data) {
+            results[item.id] = data;
+          }
+        });
+        await Promise.all(promises);
+        setWatchProviders(results);
+      } catch (err) {
+        console.error("Failed to fetch watch providers:", err);
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+
+    fetchAllProviders();
+  }, [items, country]);
 
   React.useEffect(() => {
     if (!api) return;
@@ -194,6 +222,103 @@ export function Hero({ items }: HeroProps) {
                       <p className="text-sm sm:text-base md:text-lg text-gray-300 line-clamp-3 leading-relaxed max-w-xl drop-shadow-md">
                         {movie.overview}
                       </p>
+
+                      {/* Watch Providers / Streaming availability */}
+                      <div className="py-1">
+                        {loadingProviders ? (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                              Streaming
+                            </span>
+                            <div className="flex gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse border border-white/5" />
+                              <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse border border-white/5" />
+                              <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse border border-white/5" />
+                            </div>
+                          </div>
+                        ) : (() => {
+                          const providers = watchProviders[movie.id];
+                          const flatrate = providers?.flatrate || [];
+                          const free = providers?.free || [];
+                          const rent = providers?.rent || [];
+                          const buy = providers?.buy || [];
+                          const streamOptions = [...free, ...flatrate];
+
+                          if (streamOptions.length > 0) {
+                            return (
+                              <div className="flex flex-col gap-2">
+                                <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                                  Stream On
+                                </span>
+                                <div className="flex flex-wrap gap-2">
+                                  {streamOptions.slice(0, 5).map((provider) => (
+                                    <a
+                                      key={provider.provider_id}
+                                      href={providers.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title={`${provider.provider_name} (opens JustWatch)`}
+                                      className="group/logo relative w-8 h-8 rounded-lg overflow-hidden border border-white/10 hover:border-white/20 bg-black/40 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer shadow-sm"
+                                    >
+                                      <Image
+                                        src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                                        alt={provider.provider_name}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          } else if (rent.length > 0 || buy.length > 0) {
+                            const rentBuyOptions = [...rent, ...buy]
+                              .filter((v, i, a) => a.findIndex((t) => t.provider_id === v.provider_id) === i);
+                            return (
+                              <div className="flex flex-col gap-2">
+                                <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                                  Rent/Buy On
+                                </span>
+                                <div className="flex flex-wrap gap-2">
+                                  {rentBuyOptions.slice(0, 5).map((provider) => (
+                                    <a
+                                      key={provider.provider_id}
+                                      href={providers.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title={`${provider.provider_name} (opens JustWatch)`}
+                                      className="group/logo relative w-8 h-8 rounded-lg overflow-hidden border border-white/10 hover:border-white/20 bg-black/40 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer shadow-sm"
+                                    >
+                                      <Image
+                                        src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                                        alt={provider.provider_name}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                                  Streaming
+                                </span>
+                                <a
+                                  href={providers?.link || `https://www.justwatch.com`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-zinc-400 hover:text-white hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                                >
+                                  Check JustWatch Availability
+                                </a>
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
 
                       {/* Action buttons - Single Watch Trailer button */}
                       <div className="flex flex-wrap items-center gap-4 pt-2">

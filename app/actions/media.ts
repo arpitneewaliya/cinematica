@@ -1,6 +1,6 @@
 "use server";
 
-import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, getMovieVideos, getTVVideos } from "@/lib/tmdb";
+import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, getMovieVideos, getTVVideos, getMediaWatchProviders, CountryWatchProviders } from "@/lib/tmdb";
 import { Video } from "@/types/tmdb";
 
 export async function fetchMediaChunk(
@@ -63,6 +63,20 @@ export async function getMediaTrailerAction(
     return trailer || null;
   } catch (error) {
     console.error("Error fetching media trailer:", error);
+    return null;
+  }
+}
+
+export async function getWatchProvidersAction(
+  id: number,
+  mediaType: "movie" | "tv",
+  countryCode: string = "US"
+): Promise<CountryWatchProviders | null> {
+  try {
+    const data = await getMediaWatchProviders(String(id), mediaType);
+    return data?.results[countryCode] || null;
+  } catch (error) {
+    console.error(`Error fetching watch providers for ${mediaType} ${id} (${countryCode}):`, error);
     return null;
   }
 }

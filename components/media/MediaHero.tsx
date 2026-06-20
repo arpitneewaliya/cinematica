@@ -5,6 +5,8 @@ import Image from "next/image";
 import { getImageUrl } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCountry } from "@/components/providers/CountryProvider";
+import { getWatchProvidersAction } from "@/app/actions/media";
 import { WatchlistButton } from "./WatchlistButton";
 import { WatchedButton } from "./WatchedButton";
 import { AddToCustomListButton } from "./AddToCustomListButton";
@@ -90,6 +92,10 @@ export function MediaHero({
 
   const shouldHideDetails = isVideoLoaded && isPlaying && !isUserActive;
 
+  const { country } = useCountry();
+  const [providers, setProviders] = React.useState<any>(null);
+  const [loadingProviders, setLoadingProviders] = React.useState(true);
+
   // Reset states in render phase when media item id changes
   const [prevId, setPrevId] = React.useState(id);
   if (id !== prevId) {
@@ -97,7 +103,24 @@ export function MediaHero({
     setIsVideoLoaded(false);
     setIsMuted(true);
     setIsPlaying(true);
+    setProviders(null);
   }
+
+  React.useEffect(() => {
+    const fetchProviders = async () => {
+      setLoadingProviders(true);
+      try {
+        const data = await getWatchProvidersAction(id, type, country);
+        setProviders(data);
+      } catch (err) {
+        console.error("Failed to fetch watch providers:", err);
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+
+    fetchProviders();
+  }, [id, type, country]);
 
   const toggleMute = () => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -281,6 +304,109 @@ export function MediaHero({
               <p className="text-gray-300 text-sm md:text-base lg:text-lg leading-relaxed max-w-4xl">
                 {overview || "No synopsis available."}
               </p>
+            </div>
+
+            {/* Watch Providers / Streaming availability */}
+            <div className="border-t border-white/5 pt-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>Watch Options</span>
+                <Badge variant="outline" className="text-xs uppercase border-white/10 text-zinc-400 font-semibold px-2 py-0.5 rounded">
+                  {country}
+                </Badge>
+              </h3>
+
+              {loadingProviders ? (
+                <div className="flex gap-4 items-center">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse border border-white/5" />
+                  <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse border border-white/5" />
+                  <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse border border-white/5" />
+                </div>
+              ) : (() => {
+                const flatrate = providers?.flatrate || [];
+                const free = providers?.free || [];
+                const rent = providers?.rent || [];
+                const buy = providers?.buy || [];
+                const stream = [...free, ...flatrate];
+
+                if (stream.length === 0 && rent.length === 0 && buy.length === 0) {
+                  return (
+                    <p className="text-sm text-gray-400">
+                      Not available for streaming or purchase in your region. Check{" "}
+                      <a
+                        href={providers?.link || "https://www.justwatch.com"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline inline-flex items-center gap-0.5 font-medium"
+                      >
+                        JustWatch
+                      </a>{" "}
+                      for details.
+                    </p>
+                  );
+                }
+
+                return (
+                  <div className="flex flex-col gap-5">
+                    {/* Streaming option */}
+                    {stream.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+                          Stream
+                        </span>
+                        <div className="flex flex-wrap gap-2.5">
+                          {stream.map((p) => (
+                            <a
+                              key={p.provider_id}
+                              href={providers.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title={`${p.provider_name} (opens JustWatch)`}
+                              className="group/logo relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 hover:border-white/20 bg-black/45 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer shadow-sm"
+                            >
+                              <Image
+                                src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+                                alt={p.provider_name}
+                                fill
+                                className="object-cover"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rent/Buy options */}
+                    {(rent.length > 0 || buy.length > 0) && (
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+                          Rent / Buy
+                        </span>
+                        <div className="flex flex-wrap gap-2.5">
+                          {[...rent, ...buy]
+                            .filter((v, i, a) => a.findIndex((t) => t.provider_id === v.provider_id) === i)
+                            .map((p) => (
+                              <a
+                                key={p.provider_id}
+                                href={providers.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`${p.provider_name} (opens JustWatch)`}
+                                className="group/logo relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 hover:border-white/20 bg-black/45 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer shadow-sm"
+                              >
+                                <Image
+                                  src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
+                                  alt={p.provider_name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </a>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Action Buttons Row */}

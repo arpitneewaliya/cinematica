@@ -223,3 +223,27 @@ export async function discoverMedia(
   const response = await fetchFromTMDB<{ results: TMDBItem[] }>(endpoint);
   return (response.results || []).map(item => ({ ...item, media_type: mediaType }));
 }
+
+export interface WatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
+export interface CountryWatchProviders {
+  link: string;
+  flatrate?: WatchProvider[];
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+  free?: WatchProvider[];
+}
+
+export interface WatchProvidersResponse {
+  id: number;
+  results: Record<string, CountryWatchProviders>;
+}
+
+export async function getMediaWatchProviders(id: string, type: "movie" | "tv"): Promise<WatchProvidersResponse | null> {
+  return fetchFromTMDB<WatchProvidersResponse>(`/${type}/${id}/watch/providers`).catch(() => null);
+}
