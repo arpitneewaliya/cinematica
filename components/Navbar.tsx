@@ -1,17 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
-import { Bookmark, Film, Tv, Menu, X, Search, Eye, ListPlus } from "lucide-react";
+import { Bookmark, Film, Tv, Menu, X, Search, Eye, ListPlus, ChevronDown, Library } from "lucide-react";
 import { SearchModal } from "./media/SearchModal";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function Navbar() {
   const { userId } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [kbdText, setKbdText] = useState("Ctrl+K");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof navigator !== "undefined") {
@@ -102,27 +117,57 @@ export function Navbar() {
 
           {userId ? (
             <>
-              <Link 
-                href="/watched" 
-                className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] mr-2 active:scale-95"
-              >
-                <Eye className="w-4 h-4" />
-                Watched
-              </Link>
-              <Link 
-                href="/lists" 
-                className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] mr-2 active:scale-95"
-              >
-                <ListPlus className="w-4 h-4" />
-                Lists
-              </Link>
-              <Link 
-                href="/watchlist" 
-                className="hidden sm:flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-primary/10 hover:text-primary border border-transparent hover:border-primary/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] mr-2 active:scale-95"
-              >
-                <Bookmark className="w-4 h-4" />
-                Watchlist
-              </Link>
+              {/* Desktop Library Dropdown */}
+              <div className="relative hidden sm:block" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 rounded-full hover:bg-white/10 border border-transparent hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] mr-2 active:scale-95 cursor-pointer group"
+                  aria-haspopup="true"
+                  aria-expanded={isDropdownOpen}
+                >
+                  <Library className="w-4 h-4 text-zinc-400 group-hover:text-primary transition-colors" />
+                  <span>Library</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-2 top-full mt-2 w-52 rounded-2xl bg-zinc-950/90 border border-white/10 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-2 z-50 flex flex-col gap-1"
+                    >
+                      <Link 
+                        href="/watched" 
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 rounded-xl hover:bg-white/5 active:scale-98 group"
+                      >
+                        <Eye className="w-4 h-4 text-zinc-400 group-hover:text-primary transition-colors duration-200" />
+                        Watched
+                      </Link>
+                      <Link 
+                        href="/lists" 
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 rounded-xl hover:bg-white/5 active:scale-98 group"
+                      >
+                        <ListPlus className="w-4 h-4 text-zinc-400 group-hover:text-primary transition-colors duration-200" />
+                        Lists
+                      </Link>
+                      <Link 
+                        href="/watchlist" 
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 rounded-xl hover:bg-white/5 active:scale-98 group"
+                      >
+                        <Bookmark className="w-4 h-4 text-zinc-400 group-hover:text-primary transition-colors duration-200" />
+                        Watchlist
+                      </Link>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <div className="p-[3px] rounded-full bg-gradient-to-tr from-white/5 to-white/20 border border-white/10 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all duration-300 active:scale-95 flex items-center justify-center">
                 <UserButton appearance={{ elements: { avatarBox: "w-8 h-8 md:w-9 md:h-9 rounded-full" } }} />
               </div>
