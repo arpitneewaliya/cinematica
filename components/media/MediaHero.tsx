@@ -9,7 +9,7 @@ import { WatchlistButton } from "./WatchlistButton";
 import { WatchedButton } from "./WatchedButton";
 import { AddToCustomListButton } from "./AddToCustomListButton";
 import { TrailerModal } from "./TrailerModal";
-import { Star, Clock, Calendar, ChevronDown, ChevronUp, VolumeX, Volume2, Play, Pause } from "lucide-react";
+import { Star, Clock, Calendar, VolumeX, Volume2, Play, Pause } from "lucide-react";
 import { Video } from "@/types/tmdb";
 import { cn } from "@/lib/utils";
 
@@ -49,10 +49,6 @@ export function MediaHero({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
   const trailer = videos.find((v) => v.type === "Trailer" && v.site === "YouTube") || videos[0];
 
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [isCollapsible, setIsCollapsible] = React.useState(false);
-  const textRef = React.useRef<HTMLParagraphElement>(null);
-
   const [isMuted, setIsMuted] = React.useState(true);
   const [isPlaying, setIsPlaying] = React.useState(true);
   const [isVideoLoaded, setIsVideoLoaded] = React.useState(false);
@@ -61,7 +57,6 @@ export function MediaHero({
 
   React.useEffect(() => {
     if (!isVideoLoaded || !isPlaying) {
-      setIsUserActive(true);
       return;
     }
 
@@ -99,7 +94,6 @@ export function MediaHero({
   const [prevId, setPrevId] = React.useState(id);
   if (id !== prevId) {
     setPrevId(id);
-    setIsExpanded(false);
     setIsVideoLoaded(false);
     setIsMuted(true);
     setIsPlaying(true);
@@ -134,157 +128,152 @@ export function MediaHero({
     }, 500);
   };
 
-  const checkCollapsible = React.useCallback(() => {
-    if (textRef.current) {
-      const { scrollHeight, clientHeight } = textRef.current;
-      if (window.innerWidth < 768) {
-        setIsCollapsible(scrollHeight > clientHeight);
-      } else {
-        setIsCollapsible(false);
-      }
-    }
-  }, []);
-
-  React.useEffect(() => {
-    if (!isExpanded) {
-      checkCollapsible();
-      const timeoutId = setTimeout(checkCollapsible, 100);
-      window.addEventListener("resize", checkCollapsible);
-      return () => {
-        clearTimeout(timeoutId);
-        window.removeEventListener("resize", checkCollapsible);
-      };
-    }
-  }, [overview, isExpanded, checkCollapsible]);
-
   return (
-    <div className="relative w-full h-auto min-h-[80vh] md:min-h-[85vh] flex flex-col md:flex-row items-center justify-center pt-[20vh] md:pt-[35vh] pb-8 md:pb-16 px-4 md:px-8">
-      {/* Background Media & Ambient Video Preview */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
-        {/* Static Backdrop Image (visible when trailer is not loaded or playing) */}
-        {backdropPath && (
-          <Image
-            src={getImageUrl(backdropPath, "original")}
-            alt={title}
-            fill
-            priority
-            className={cn(
-              "object-cover transition-opacity duration-1000 ease-in-out z-0",
-              (isVideoLoaded && isPlaying) ? "opacity-0" : "opacity-80"
-            )}
-          />
-        )}
-
-        {/* Muted background preview loop */}
-        {trailer && (
-          <div className={cn(
-            "absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none scale-[1.35] md:scale-[1.25]",
-            (isVideoLoaded && isPlaying) ? "opacity-[0.80]" : "opacity-0"
-          )}>
-            <iframe
-              ref={iframeRef}
-              width="100%"
-              height="100%"
-              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailer.key}&enablejsapi=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1`}
-              title="Preview Trailer"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              className="w-full h-full pointer-events-none"
-              onLoad={handleVideoLoad}
-            ></iframe>
-          </div>
-        )}
-
-        {/* z-20 overlays to blend it into the dark background and guarantee text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-20" />
-      </div>
-
-      <div className="container relative z-30 mx-auto flex flex-col md:flex-row items-start md:items-end">
-        {/* Poster */}
-        {posterPath && (
-          <div className={cn(
-            "relative shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group transition-all duration-700 ease-in-out origin-bottom",
-            shouldHideDetails 
-              ? "opacity-0 scale-95 pointer-events-none w-0 h-0 m-0 border-none select-none" 
-              : "w-44 h-64 sm:w-56 sm:h-80 md:w-80 md:h-[30rem] opacity-100 scale-100 mb-6 md:mb-0 md:mr-12"
-          )}>
+    <>
+      {/* Part 1: Ambient Video/Backdrop Banner */}
+      <div className="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] md:min-h-[600px] flex items-end pb-12 px-4 md:px-8">
+        {/* Background Media & Ambient Video Preview */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
+          {/* Static Backdrop Image (visible when trailer is not loaded or playing) */}
+          {backdropPath && (
             <Image
-              src={getImageUrl(posterPath, "w500")}
+              src={getImageUrl(backdropPath, "original")}
               alt={title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              priority
+              className={cn(
+                "object-cover transition-opacity duration-1000 ease-in-out z-0",
+                (isVideoLoaded && isPlaying) ? "opacity-0" : "opacity-80"
+              )}
             />
-          </div>
-        )}
+          )}
 
-        {/* Details */}
-        <div className="flex flex-col gap-5 md:gap-6 max-w-3xl text-left w-full">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg tracking-tight">
-            {title}
-          </h1>
+          {/* Muted background preview loop */}
+          {trailer && (
+            <div className={cn(
+              "absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none scale-[1.35] md:scale-[1.25]",
+              (isVideoLoaded && isPlaying) ? "opacity-[0.80]" : "opacity-0"
+            )}>
+              <iframe
+                ref={iframeRef}
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailer.key}&enablejsapi=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1`}
+                title="Preview Trailer"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                className="w-full h-full pointer-events-none"
+                onLoad={handleVideoLoad}
+              ></iframe>
+            </div>
+          )}
 
+          {/* overlays to blend it into the dark background and guarantee text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent z-20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-20" />
+        </div>
+
+        <div className="container relative z-30 mx-auto px-4 md:px-8 w-full">
+          {/* Minimal Hero overlay (Title + metadata) */}
           <div className={cn(
-            "flex flex-col gap-5 md:gap-6 transition-all duration-700 ease-in-out origin-top w-full",
+            "flex flex-col gap-4 max-w-3xl text-left transition-all duration-700 ease-in-out origin-bottom",
             shouldHideDetails 
-              ? "opacity-0 max-h-0 pointer-events-none overflow-hidden translate-y-2 select-none" 
-              : "opacity-100 max-h-[800px] translate-y-0"
+              ? "opacity-0 translate-y-4 pointer-events-none select-none" 
+              : "opacity-100 translate-y-0"
           )}>
-            <div className="flex flex-wrap items-center justify-start gap-2 md:gap-4 text-xs md:text-sm md:text-base font-medium text-gray-300">
-              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-none gap-1">
-                <Star className="w-4 h-4 fill-current" />
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] tracking-tight leading-tight">
+              {title}
+            </h1>
+
+            <div className="flex flex-wrap items-center justify-start gap-2 md:gap-4 text-xs md:text-sm font-semibold text-gray-200">
+              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-none gap-1 py-0.5">
+                <Star className="w-3.5 h-3.5 fill-current" />
                 {rating.toFixed(1)}
               </Badge>
               {year && (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 drop-shadow-md">
                   <Calendar className="w-4 h-4" /> {year}
                 </span>
               )}
               {runtime ? (
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 drop-shadow-md">
                   <Clock className="w-4 h-4" /> {Math.floor(runtime / 60)}h {runtime % 60}m
                 </span>
               ) : null}
             </div>
 
-            <div className="flex flex-wrap items-center justify-start gap-2">
+            <div className="flex flex-wrap items-center justify-start gap-2 mt-1">
               {genres.map((g) => (
-                <Badge key={g.id} variant="outline" className="border-white/20 text-gray-300 backdrop-blur-md">
+                <Badge key={g.id} variant="outline" className="border-white/20 text-gray-200 backdrop-blur-md bg-black/20">
                   {g.name}
                 </Badge>
               ))}
             </div>
+          </div>
+        </div>
 
-            <div>
-              <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Overview</h3>
-              <p
-                ref={textRef}
-                className={cn(
-                  "text-sm md:text-lg text-gray-300 leading-relaxed transition-all duration-300",
-                  isExpanded ? "line-clamp-none" : "line-clamp-4 md:line-clamp-none"
-                )}
-              >
-                {overview}
-              </p>
-              {isCollapsible && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="mt-3 text-xs font-semibold text-gray-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer py-1.5 px-3.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 shadow-lg"
-                  aria-label={isExpanded ? "Collapse overview" : "Expand overview"}
-                >
-                  {isExpanded ? (
-                    <>
-                      Read Less <ChevronUp className="w-3.5 h-3.5" />
-                    </>
-                  ) : (
-                    <>
-                      Read More <ChevronDown className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </button>
+        {/* Ambient controls */}
+        {trailer && isVideoLoaded && (
+          <div className={cn(
+            "absolute right-4 md:right-8 bottom-12 z-30 flex items-center gap-3 animate-in fade-in duration-500 transition-all duration-700 ease-in-out",
+            shouldHideDetails ? "opacity-0 pointer-events-none translate-y-2 select-none" : "opacity-100 translate-y-0"
+          )}>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={togglePlay}
+              className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105 animate-in zoom-in-50 duration-300"
+              aria-label={isPlaying ? "Pause trailer" : "Play trailer"}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5 fill-current" />
+              ) : (
+                <Play className="w-5 h-5 fill-current text-primary" />
               )}
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={toggleMute}
+              className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105 animate-in zoom-in-50 duration-300"
+              aria-label={isMuted ? "Unmute preview" : "Mute preview"}
+            >
+              {isMuted ? (
+                <VolumeX className="w-5 h-5" />
+              ) : (
+                <Volume2 className="w-5 h-5 text-primary" />
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Part 2: Details & Actions Section (Below the fold) */}
+      <div className="w-full bg-[#0a0a0a] border-t border-white/5 relative z-30 py-12 md:py-16">
+        <div className="container mx-auto px-4 md:px-8 flex flex-col md:flex-row gap-8 md:gap-12 items-start">
+          {/* Poster Column */}
+          {posterPath && (
+            <div className="relative shrink-0 w-48 h-72 sm:w-56 sm:h-84 md:w-72 md:h-[27rem] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+              <Image
+                src={getImageUrl(posterPath, "w500")}
+                alt={title}
+                fill
+                priority
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+          )}
+
+          {/* Details & Info Column */}
+          <div className="flex-1 text-left flex flex-col gap-6">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-white mb-3">Synopsis</h2>
+              <p className="text-gray-300 text-sm md:text-base lg:text-lg leading-relaxed max-w-4xl">
+                {overview || "No synopsis available."}
+              </p>
             </div>
 
+            {/* Action Buttons Row */}
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-start gap-3 md:gap-4 pt-4 w-full sm:w-auto">
               {trailer && (
                 <TrailerModal 
@@ -327,40 +316,7 @@ export function MediaHero({
           </div>
         </div>
       </div>
-      {trailer && isVideoLoaded && (
-        <div className={cn(
-          "absolute right-4 md:right-8 top-20 md:top-24 z-30 flex items-center gap-3 animate-in fade-in duration-500 transition-all duration-700 ease-in-out",
-          shouldHideDetails ? "opacity-0 pointer-events-none -translate-y-2 select-none" : "opacity-100 translate-y-0"
-        )}>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={togglePlay}
-            className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105"
-            aria-label={isPlaying ? "Pause trailer" : "Play trailer"}
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5 fill-current" />
-            ) : (
-              <Play className="w-5 h-5 fill-current text-primary" />
-            )}
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={toggleMute}
-            className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105"
-            aria-label={isMuted ? "Unmute preview" : "Mute preview"}
-          >
-            {isMuted ? (
-              <VolumeX className="w-5 h-5" />
-            ) : (
-              <Volume2 className="w-5 h-5 text-primary" />
-            )}
-          </Button>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
