@@ -155,7 +155,7 @@ export function Hero({ items }: HeroProps) {
       <Carousel
         setApi={setApi}
         plugins={[autoplay]}
-        className="w-full h-[min(82svh,700px)] md:h-[85vh] min-h-[520px] md:min-h-[650px] max-h-[900px] bg-[#0a0a0a]"
+        className="h-[100svh] min-h-[600px] w-full bg-[#0a0a0a]"
         opts={{ loop: true }}
       >
         <CarouselContent className="h-full">
@@ -169,7 +169,7 @@ export function Hero({ items }: HeroProps) {
             return (
               <CarouselItem
                 key={movie.id}
-                className="relative w-full h-[min(82svh,700px)] md:h-[85vh] min-h-[520px] md:min-h-[650px] max-h-[900px] overflow-hidden select-none"
+                className="relative h-[100svh] min-h-[600px] w-full overflow-hidden select-none"
               >
                 {/* Clean backdrop image background (no blur, no silhouette cutout) */}
                 <div className="absolute inset-0 w-full h-full">
@@ -187,7 +187,8 @@ export function Hero({ items }: HeroProps) {
                 </div>
 
                 {/* Text content & single Watch Trailer button */}
-                <div className="relative h-full flex items-end pb-10 md:items-center md:pb-0 container mx-auto px-4 sm:px-6 md:px-12 z-20">
+                <div className="relative z-20 flex h-full items-end pb-10 md:items-center md:pb-0 container mx-auto px-4 sm:px-6 md:px-12">
+                  <div className="md:translate-y-14">
                   <div className="max-w-2xl space-y-3 sm:space-y-4 md:space-y-6 text-left">
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
@@ -365,6 +366,7 @@ export function Hero({ items }: HeroProps) {
                       </div>
                     </motion.div>
                   </div>
+                  </div>
                 </div>
               </CarouselItem>
             );
@@ -372,7 +374,7 @@ export function Hero({ items }: HeroProps) {
         </CarouselContent>
       </Carousel>
 
-      <div className="pointer-events-none absolute inset-x-0 top-[min(82svh,700px)] z-30 -translate-y-12 md:top-[85vh] md:-translate-y-16">
+      <div className="pointer-events-none absolute inset-x-0 top-[100svh] z-30 -translate-y-12 md:-translate-y-16">
         <div className="container mx-auto flex justify-end px-4 sm:px-6 md:px-12">
           <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md">
             {items.map((item, index) => (

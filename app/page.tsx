@@ -75,7 +75,7 @@ export default async function Home() {
       {hasData ? (
         <>
           {topHeroItems.length > 0 && <Hero items={topHeroItems} />}
-          <div className="relative z-20 -mt-8 space-y-0 rounded-t-[2rem] bg-gradient-to-b from-[#101010] via-[#0a0a0a] to-[#0a0a0a] pt-3 md:-mt-16 md:rounded-t-[3rem] md:pt-7">
+          <div className="relative z-20 -mt-px space-y-0 rounded-t-[2rem] bg-gradient-to-b from-[#101010] via-[#0a0a0a] to-[#0a0a0a] pt-3 md:rounded-t-[3rem] md:pt-7">
             <MediaRail title="Trending Movies" eyebrow="What everyone is watching" items={remainingMovies} initialWatchlistIds={initialWatchlistIds} />
             <MediaRail title="Trending TV Shows" eyebrow="Binge-worthy now" items={remainingTvShows} initialWatchlistIds={initialWatchlistIds} />
             <MediaRail title="Award-Winning Films" eyebrow="Oscar Best Picture winners" items={awardWinningFilms} initialWatchlistIds={initialWatchlistIds} />
