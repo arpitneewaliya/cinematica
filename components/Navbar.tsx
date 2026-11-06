@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Bookmark, Film, Tv, Menu, X, Search, Eye, ListPlus, ChevronDown, Library } from "lucide-react";
@@ -10,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCountry, COUNTRIES } from "@/components/providers/CountryProvider";
 
 export function Navbar() {
+  const pathname = usePathname();
   const { userId } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -19,6 +21,21 @@ export function Navbar() {
   const { country, setCountry } = useCountry();
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const countryRef = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isHome = pathname === "/";
+  const isMoviesRoute = pathname.startsWith("/movies") || pathname.startsWith("/movie/");
+  const isTvRoute = pathname.startsWith("/tv");
+
+  useEffect(() => {
+    const updateScrolledState = () => {
+      setIsScrolled(window.scrollY > 24);
+    };
+
+    window.addEventListener("scroll", updateScrolledState, { passive: true });
+    requestAnimationFrame(updateScrolledState);
+
+    return () => window.removeEventListener("scroll", updateScrolledState);
+  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,7 +77,17 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/40 backdrop-blur-2xl transition-all duration-300">
+    <nav
+      className={`top-0 z-50 w-full border-b transition-all duration-500 ${
+        isHome
+          ? `fixed ${
+              isScrolled
+                ? "border-white/10 bg-black/75 shadow-[0_12px_36px_rgba(0,0,0,0.32)] backdrop-blur-2xl"
+                : "border-transparent bg-transparent"
+            }`
+          : "sticky border-white/5 bg-black/75 backdrop-blur-2xl"
+      }`}
+    >
       <div className="container mx-auto px-4 md:px-8 h-16 md:h-20 flex items-center justify-between">
         <div className="flex items-center gap-4 md:gap-12">
           {/* Logo */}
@@ -74,14 +101,24 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             <Link
               href="/movies"
-              className="relative px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 group flex items-center gap-2 rounded-full hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-95"
+              aria-current={isMoviesRoute ? "page" : undefined}
+              className={`relative flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 group active:scale-95 ${
+                isMoviesRoute
+                  ? "bg-white/15 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
+                  : "text-gray-300 hover:bg-white/10 hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+              }`}
             >
               <Film className="w-4 h-4 transition-transform group-hover:scale-110" />
               Movies
             </Link>
             <Link
               href="/tv"
-              className="relative px-5 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 group flex items-center gap-2 rounded-full hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-95"
+              aria-current={isTvRoute ? "page" : undefined}
+              className={`relative flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 group active:scale-95 ${
+                isTvRoute
+                  ? "bg-white/15 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
+                  : "text-gray-300 hover:bg-white/10 hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+              }`}
             >
               <Tv className="w-4 h-4 transition-transform group-hover:scale-110" />
               TV Shows
@@ -273,7 +310,10 @@ export function Navbar() {
           <div className="container mx-auto px-4 py-6 flex flex-col gap-3">
             <Link
               href="/movies"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/10 hover:pl-6 transition-all duration-300 group"
+              aria-current={isMoviesRoute ? "page" : undefined}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 group hover:pl-6 ${
+                isMoviesRoute ? "bg-white/10 text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               <Film className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
@@ -281,7 +321,10 @@ export function Navbar() {
             </Link>
             <Link
               href="/tv"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-300 hover:text-white rounded-xl hover:bg-white/10 hover:pl-6 transition-all duration-300 group"
+              aria-current={isTvRoute ? "page" : undefined}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 group hover:pl-6 ${
+                isTvRoute ? "bg-white/10 text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               <Tv className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />

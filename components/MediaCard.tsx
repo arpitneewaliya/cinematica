@@ -27,7 +27,7 @@ export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCar
             alt={title || "Poster"}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+            sizes="(max-width: 480px) 72vw, (max-width: 640px) 46vw, (max-width: 768px) 31vw, 25vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
           

@@ -101,6 +101,31 @@ export async function fetchTopRatedTvShows(): Promise<TMDBItem[]> {
   return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'tv' }));
 }
 
+export async function fetchNowPlayingMovies(): Promise<TMDBItem[]> {
+  const data = await fetchFromTMDB<TMDBResponse>('/movie/now_playing');
+  return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'movie' }));
+}
+
+export async function fetchMoviesByGenre(genreIds: number[]): Promise<TMDBItem[]> {
+  if (genreIds.length === 0) return [];
+
+  const data = await fetchFromTMDB<TMDBResponse>(
+    `/discover/movie?sort_by=popularity.desc&with_genres=${genreIds.join('|')}`
+  );
+  return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'movie' }));
+}
+
+export async function fetchMoviesByIds(movieIds: number[]): Promise<TMDBItem[]> {
+  const movies = await Promise.all(
+    movieIds.map(async (id) => {
+      const movie = await fetchFromTMDB<TMDBItem>(`/movie/${id}`);
+      return movie?.id ? { ...movie, media_type: 'movie' as const } : null;
+    })
+  );
+
+  return movies.filter((movie) => movie !== null);
+}
+
 import { MovieDetails, TVDetails, CreditsResponse, VideosResponse } from "@/types/tmdb";
 
 export async function getMovieDetails(id: string): Promise<MovieDetails | null> {

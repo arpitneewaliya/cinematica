@@ -13,7 +13,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getMediaTrailerAction, getWatchProvidersAction } from "@/app/actions/media";
@@ -78,6 +78,7 @@ function getGenreNames(genreIds?: number[], mediaType?: "movie" | "tv"): string 
 
 export function Hero({ items }: HeroProps) {
   const router = useRouter();
+  const prefersReducedMotion = useReducedMotion();
   const autoplay = React.useMemo(
     () => Autoplay({ delay: 6000, stopOnInteraction: true }),
     []
@@ -150,6 +151,7 @@ export function Hero({ items }: HeroProps) {
 
   return (
     <>
+      <div className="relative">
       <Carousel
         setApi={setApi}
         plugins={[autoplay]}
@@ -190,7 +192,7 @@ export function Hero({ items }: HeroProps) {
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
-                      transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+                      transition={{ duration: prefersReducedMotion ? 0 : 0.6, delay: prefersReducedMotion ? 0 : 0.1, ease: "easeOut" }}
                       className="space-y-3 sm:space-y-4 md:space-y-6"
                     >
                       {/* Trending Badge */}
@@ -369,6 +371,26 @@ export function Hero({ items }: HeroProps) {
           })}
         </CarouselContent>
       </Carousel>
+
+      <div className="pointer-events-none absolute inset-x-0 top-[min(82svh,700px)] z-30 -translate-y-12 md:top-[85vh] md:-translate-y-16">
+        <div className="container mx-auto flex justify-end px-4 sm:px-6 md:px-12">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md">
+            {items.map((item, index) => (
+              <button
+                key={`${item.media_type}-${item.id}`}
+                type="button"
+                onClick={() => api?.scrollTo(index)}
+                aria-label={`Show ${item.title || item.name}`}
+                aria-current={index === current ? "true" : undefined}
+                className={`h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                  index === current ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/75"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      </div>
 
       {/* Dynamic Trailer Player Modal Overlay */}
       {selectedTrailer && (

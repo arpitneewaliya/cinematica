@@ -138,6 +138,11 @@
   display: none;
 }
 
+@utility content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
 /* Better touch scrolling on mobile */
 @media (max-width: 768px) {
   .hide-scrollbar {
