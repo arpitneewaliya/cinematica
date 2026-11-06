@@ -165,6 +165,9 @@ export function Hero({ items }: HeroProps) {
             const genresString = getGenreNames(movie.genre_ids, movie.media_type);
             const releaseInfo = getMediaReleaseInfo(movie.release_date || movie.first_air_date);
             const providerKey = `${movie.media_type}:${movie.id}`;
+            const logoHeight = movie.logo_aspect_ratio
+              ? Math.round(720 / movie.logo_aspect_ratio)
+              : 240;
 
             return (
               <CarouselItem
@@ -211,7 +214,20 @@ export function Hero({ items }: HeroProps) {
                           className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
                           aria-label={`View details for ${title}`}
                         >
-                          {title}
+                          {movie.logo_path ? (
+                            <>
+                              <span className="sr-only">{title}</span>
+                              <Image
+                                src={getImageUrl(movie.logo_path, "original")}
+                                alt=""
+                                width={720}
+                                height={logoHeight}
+                                className="block h-auto max-h-28 w-auto max-w-[min(76vw,640px)] object-contain object-left drop-shadow-[0_4px_18px_rgba(0,0,0,0.85)] sm:max-h-36 md:max-h-44"
+                              />
+                            </>
+                          ) : (
+                            title
+                          )}
                         </Link>
                       </h1>
 

@@ -1,11 +1,11 @@
 import {
   fetchMoviesByGenre,
   fetchMoviesByIds,
+  fetchHeroMedia,
   fetchNowPlayingMovies,
   fetchPopularMovies,
   fetchTopRatedMovies,
   fetchTopRatedTvShows,
-  fetchTrendingMedia,
   fetchTrendingMovies,
   fetchTrendingTvShows,
 } from "@/lib/tmdb";
@@ -43,7 +43,7 @@ export default async function Home() {
     popularMovies,
     sciFiFantasy,
   ] = await Promise.all([
-    fetchTrendingMedia(),
+    fetchHeroMedia(),
     fetchTrendingMovies(),
     fetchTrendingTvShows(),
     fetchMoviesByIds(OSCAR_BEST_PICTURE_WINNERS),
@@ -65,7 +65,7 @@ export default async function Home() {
   const hasData = heroItems.length > 0 || trendingMovies.length > 0 || trendingTvShows.length > 0;
 
   // TMDb's all-media trending endpoint provides the mixed movie/TV ranking.
-  const topHeroItems = heroItems.slice(0, 5);
+  const topHeroItems = heroItems;
   const featuredKeys = new Set(topHeroItems.map(item => `${item.media_type}:${item.id}`));
   const remainingMovies = trendingMovies.filter(item => !featuredKeys.has(`movie:${item.id}`));
   const remainingTvShows = trendingTvShows.filter(item => !featuredKeys.has(`tv:${item.id}`));

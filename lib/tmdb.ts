@@ -13,10 +13,24 @@ export interface TMDBItem {
   vote_average: number;
   media_type: 'movie' | 'tv';
   genre_ids?: number[];
+  logo_path?: string;
+  logo_aspect_ratio?: number;
 }
 
 interface TMDBResponse {
   results: TMDBItem[];
+}
+
+interface TMDBImageAsset {
+  file_path: string;
+  iso_639_1?: string | null;
+  vote_average: number;
+  vote_count: number;
+  aspect_ratio: number;
+}
+
+interface TMDBImagesResponse {
+  logos?: TMDBImageAsset[];
 }
 
 export async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
@@ -74,6 +88,36 @@ export async function fetchTrendingMedia(): Promise<TMDBItem[]> {
   return data.results
     .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
     .slice(0, 20);
+}
+
+function getPreferredLogo(logos: TMDBImageAsset[] = []): TMDBImageAsset | undefined {
+  return logos.toSorted((first, second) => {
+    const languageScore = (logo: TMDBImageAsset) =>
+      logo.iso_639_1 === 'en' ? 2 : logo.iso_639_1 === null ? 1 : 0;
+
+    return (
+      languageScore(second) - languageScore(first) ||
+      second.vote_count - first.vote_count ||
+      second.vote_average - first.vote_average
+    );
+  })[0];
+}
+
+export async function fetchHeroMedia(): Promise<TMDBItem[]> {
+  const trendingItems = (await fetchTrendingMedia()).slice(0, 5);
+
+  return Promise.all(
+    trendingItems.map(async (item) => {
+      const images = await fetchFromTMDB<TMDBImagesResponse>(
+        `/${item.media_type}/${item.id}/images?include_image_language=en,null`
+      );
+      const logo = getPreferredLogo(images.logos);
+
+      return logo
+        ? { ...item, logo_path: logo.file_path, logo_aspect_ratio: logo.aspect_ratio }
+        : item;
+    })
+  );
 }
 
 export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500') {
