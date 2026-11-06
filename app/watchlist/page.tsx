@@ -3,8 +3,8 @@ import { getImageUrl } from "@/lib/tmdb";
 import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { getMediaReleaseInfo } from "@/lib/media-display";
 
 export const metadata = {
   title: "My Watchlist - Cinematica",
@@ -30,11 +30,19 @@ export default async function WatchlistPage() {
             <p className="text-muted-foreground max-w-md">
               Start saving movies and shows to watch later. They will appear here.
             </p>
+            <div className="flex flex-wrap justify-center gap-3 mt-6">
+              <Link href="/movies" className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Discover movies
+              </Link>
+              <Link href="/tv" className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Discover TV shows
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
             {items.map((item) => {
-              const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : "";
+              const { year, isUpcoming } = getMediaReleaseInfo(item.releaseDate);
               return (
                 <Link key={item.id} href={`/${item.mediaType}/${item.mediaId}`}>
                   <Card className="group relative overflow-hidden rounded-xl bg-card/50 backdrop-blur-sm border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/20">
@@ -56,7 +64,7 @@ export default async function WatchlistPage() {
                         {item.title}
                       </h3>
                       <p className="text-xs md:text-sm text-gray-300 font-medium capitalize">
-                        {year} • {item.mediaType}
+                        {year}{isUpcoming ? " • Upcoming" : ""}{year || isUpcoming ? " • " : ""}{item.mediaType}
                       </p>
                     </CardContent>
                   </Card>

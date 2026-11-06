@@ -115,7 +115,7 @@ export function Navbar() {
           <div className="lg:hidden mr-1">
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 active:scale-90 cursor-pointer"
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 active:scale-90 cursor-pointer"
               aria-label="Open search"
             >
               <Search className="w-5 h-5" />
@@ -253,9 +253,11 @@ export function Navbar() {
 
           {/* Mobile Menu Toggle */}
           <button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 active:scale-90 ml-1"
+            className="md:hidden flex items-center justify-center w-11 h-11 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 active:scale-90 ml-1"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -267,7 +269,7 @@ export function Navbar() {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-white/5 bg-black/90 backdrop-blur-3xl animate-in slide-in-from-top-2 duration-300 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+        <div id="mobile-navigation" className="md:hidden border-t border-white/5 bg-black/90 backdrop-blur-3xl animate-in slide-in-from-top-2 duration-300 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
           <div className="container mx-auto px-4 py-6 flex flex-col gap-3">
             <Link
               href="/movies"

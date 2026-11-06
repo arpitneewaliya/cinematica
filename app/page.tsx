@@ -1,4 +1,4 @@
-import { fetchTrendingMovies, fetchTrendingTvShows } from "@/lib/tmdb";
+import { fetchTrendingMedia, fetchTrendingMovies, fetchTrendingTvShows } from "@/lib/tmdb";
 import { Hero } from "@/components/Hero";
 import { MediaRow } from "@/components/MediaRow";
 import { getUserWatchlist } from "@/app/actions/watchlist";
@@ -9,7 +9,8 @@ export const metadata = {
 };
 
 export default async function Home() {
-  const [movies, tvShows] = await Promise.all([
+  const [heroItems, movies, tvShows] = await Promise.all([
+    fetchTrendingMedia(),
     fetchTrendingMovies(),
     fetchTrendingTvShows(),
   ]);
@@ -18,16 +19,17 @@ export default async function Home() {
   try {
     const watchlist = await getUserWatchlist();
     initialWatchlistIds = watchlist.map(item => item.mediaId);
-  } catch (error) {
+  } catch {
     // User is probably not logged in, ignore
   }
 
   const hasData = movies.length > 0 || tvShows.length > 0;
 
-  // Combine and get top 5 for the slideshow
-  const topHeroItems = [...movies, ...tvShows]
-    .sort((a, b) => b.vote_average - a.vote_average)
-    .slice(0, 5);
+  // TMDb's all-media trending endpoint provides the mixed movie/TV ranking.
+  const topHeroItems = heroItems.slice(0, 5);
+  const featuredKeys = new Set(topHeroItems.map(item => `${item.media_type}:${item.id}`));
+  const remainingMovies = movies.filter(item => !featuredKeys.has(`movie:${item.id}`));
+  const remainingTvShows = tvShows.filter(item => !featuredKeys.has(`tv:${item.id}`));
 
   return (
     <main className="min-h-screen bg-background pb-16">
@@ -35,8 +37,8 @@ export default async function Home() {
         <>
           {topHeroItems.length > 0 && <Hero items={topHeroItems} />}
           <div className="space-y-4 md:space-y-8 mt-4 md:-mt-12 relative z-20">
-            <MediaRow title="Trending Movies" items={movies.slice(1)} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRow title="Trending TV Shows" items={tvShows} initialWatchlistIds={initialWatchlistIds} />
+            <MediaRow title="Trending Movies" items={remainingMovies} initialWatchlistIds={initialWatchlistIds} />
+            <MediaRow title="Trending TV Shows" items={remainingTvShows} initialWatchlistIds={initialWatchlistIds} />
           </div>
         </>
       ) : (

@@ -4,12 +4,13 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, ArrowLeft, Layers, Calendar, Star, Film, Tv } from "lucide-react";
+import { Trash2, ArrowLeft, Layers, Film, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { removeFromList, deleteCustomList } from "@/app/actions/lists";
 import { getImageUrl } from "@/lib/tmdb";
+import { getMediaReleaseInfo } from "@/lib/media-display";
 
 interface ListItem {
   id: string;
@@ -113,13 +114,19 @@ export function CustomListDetails({ list }: CustomListDetailsProps) {
           <Layers className="w-12 h-12 text-gray-600 mb-4 stroke-[1.5]" />
           <h2 className="text-lg font-semibold text-white mb-1">This list is empty</h2>
           <p className="text-muted-foreground text-sm max-w-xs">
-            Browse movies and shows, click "Add to List", and save them here.
+            Browse movies and shows, click &quot;Add to List&quot;, and save them here.
           </p>
+          <Link
+            href="/movies"
+            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            Browse movies
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {items.map((item) => {
-            const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : "";
+            const { year, isUpcoming } = getMediaReleaseInfo(item.releaseDate);
 
             return (
               <div key={item.id} className="relative group/card">
@@ -162,7 +169,7 @@ export function CustomListDetails({ list }: CustomListDetailsProps) {
                         ) : (
                           <Tv className="w-3 h-3 text-gray-400" />
                         )}
-                        <span>{year} • {item.mediaType === "movie" ? "Movie" : "TV"}</span>
+                        <span>{year}{isUpcoming ? " • Upcoming" : ""}{year || isUpcoming ? " • " : ""}{item.mediaType === "movie" ? "Movie" : "TV"}</span>
                       </p>
                     </CardContent>
                   </Card>

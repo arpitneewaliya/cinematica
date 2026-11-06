@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Clock, Calendar, Trash2, Video, Film, BarChart3, AlertCircle, Sparkles } from "lucide-react";
+import { Star, Clock, Calendar, Trash2, Video, Film, BarChart3, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -206,6 +206,20 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
             <p className="text-muted-foreground text-sm max-w-sm">
               Mark a movie or TV show as watched to start tracking your watch history.
             </p>
+            <div className="flex flex-wrap justify-center gap-3 mt-6">
+              <Link
+                href="/movies"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
+                Discover movies
+              </Link>
+              <Link
+                href="/tv"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
+                Discover TV shows
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -286,7 +300,7 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
 
                     {item.notes && (
                       <div className="mt-3 text-xs md:text-sm text-gray-300 bg-white/5 p-3 rounded-xl border border-white/5 leading-relaxed relative pr-8">
-                        "{item.notes}"
+                        &ldquo;{item.notes}&rdquo;
                       </div>
                     )}
                   </div>

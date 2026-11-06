@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MiniWatchlistButton } from "./media/MiniWatchlistButton";
+import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
 
 interface MediaCardProps {
   item: TMDBItem;
@@ -15,7 +16,7 @@ interface MediaCardProps {
 export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCardProps) {
   const title = item.title || item.name;
   const releaseDate = item.release_date || item.first_air_date;
-  const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
+  const { year, isUpcoming } = getMediaReleaseInfo(releaseDate);
 
   return (
     <Link href={`/${item.media_type}/${item.id}`}>
@@ -40,8 +41,12 @@ export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCar
 
           <div className="absolute right-1.5 top-1.5 md:right-2 md:top-2">
             <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-none text-white gap-1 font-semibold text-[10px] md:text-xs">
-              <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-yellow-400 text-yellow-400" />
-              {item.vote_average.toFixed(1)}
+              {item.vote_average > 0 && (
+                <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-yellow-400 text-yellow-400" />
+              )}
+              <span className={item.vote_average > 0 ? "" : "text-[9px] md:text-[10px]"}>
+                {formatMediaRating(item.vote_average)}
+              </span>
             </Badge>
           </div>
         </div>
@@ -51,7 +56,7 @@ export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCar
             {title}
           </h3>
           <p className="text-xs md:text-sm text-gray-300 font-medium">
-            {year} • {item.media_type === "movie" ? "Movie" : "TV Show"}
+            {year}{isUpcoming ? " • Upcoming" : ""}{year || isUpcoming ? " • " : ""}{item.media_type === "movie" ? "Movie" : "TV Show"}
           </p>
         </CardContent>
       </Card>

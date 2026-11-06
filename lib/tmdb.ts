@@ -23,7 +23,7 @@ export async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
   if (!TMDB_API_KEY) {
     console.warn('TMDB_API_KEY is not defined in environment variables');
     // Return empty results if API key is not present so the app doesn't crash
-    return { results: [] } as any;
+    return { results: [] } as unknown as T;
   }
 
   try {
@@ -49,13 +49,13 @@ export async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
 
     if (!res.ok) {
       console.error(`Failed to fetch from TMDB: ${res.status}`);
-      return { results: [] } as any;
+      return { results: [] } as unknown as T;
     }
 
     return res.json();
   } catch (error) {
     console.error(`Fetch error for TMDB endpoint ${endpoint}:`, error);
-    return { results: [] } as any;
+    return { results: [] } as unknown as T;
   }
 }
 
@@ -67,6 +67,13 @@ export async function fetchTrendingMovies(): Promise<TMDBItem[]> {
 export async function fetchTrendingTvShows(): Promise<TMDBItem[]> {
   const data = await fetchFromTMDB<TMDBResponse>('/trending/tv/day');
   return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'tv' }));
+}
+
+export async function fetchTrendingMedia(): Promise<TMDBItem[]> {
+  const data = await fetchFromTMDB<TMDBResponse>('/trending/all/day');
+  return data.results
+    .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
+    .slice(0, 20);
 }
 
 export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500') {

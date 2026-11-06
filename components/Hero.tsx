@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { TMDBItem, getImageUrl } from "@/lib/tmdb";
+import { TMDBItem, getImageUrl, type CountryWatchProviders } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
 import { Play, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +15,11 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getMediaTrailerAction, getWatchProvidersAction } from "@/app/actions/media";
 import { Video } from "@/types/tmdb";
 import { useCountry } from "@/components/providers/CountryProvider";
+import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
 
 interface HeroProps {
   items: TMDBItem[];
@@ -75,11 +77,10 @@ function getGenreNames(genreIds?: number[], mediaType?: "movie" | "tv"): string 
 }
 
 export function Hero({ items }: HeroProps) {
-  if (!items || items.length === 0) return null;
-
   const router = useRouter();
-  const plugin = React.useRef(
-    Autoplay({ delay: 6000, stopOnInteraction: true })
+  const autoplay = React.useMemo(
+    () => Autoplay({ delay: 6000, stopOnInteraction: true }),
+    []
   );
 
   const [api, setApi] = React.useState<CarouselApi>();
@@ -88,18 +89,18 @@ export function Hero({ items }: HeroProps) {
   const [selectedTrailer, setSelectedTrailer] = React.useState<Video | null>(null);
 
   const { country } = useCountry();
-  const [watchProviders, setWatchProviders] = React.useState<Record<number, any>>({});
+  const [watchProviders, setWatchProviders] = React.useState<Record<string, CountryWatchProviders>>({});
   const [loadingProviders, setLoadingProviders] = React.useState(true);
 
   React.useEffect(() => {
     const fetchAllProviders = async () => {
       setLoadingProviders(true);
-      const results: Record<number, any> = {};
+      const results: Record<string, CountryWatchProviders> = {};
       try {
         const promises = items.map(async (item) => {
           const data = await getWatchProvidersAction(item.id, item.media_type, country);
           if (data) {
-            results[item.id] = data;
+            results[`${item.media_type}:${item.id}`] = data;
           }
         });
         await Promise.all(promises);
@@ -117,11 +118,14 @@ export function Hero({ items }: HeroProps) {
   React.useEffect(() => {
     if (!api) return;
 
-    setCurrent(api.selectedScrollSnap());
-
-    api.on("select", () => {
+    const updateCurrent = () => {
       setCurrent(api.selectedScrollSnap());
-    });
+    };
+
+    api.on("select", updateCurrent);
+    return () => {
+      api.off("select", updateCurrent);
+    };
   }, [api]);
 
   const handleWatchTrailer = async (id: number, mediaType: "movie" | "tv") => {
@@ -142,12 +146,14 @@ export function Hero({ items }: HeroProps) {
     }
   };
 
+  if (!items || items.length === 0) return null;
+
   return (
     <>
       <Carousel
         setApi={setApi}
-        plugins={[plugin.current]}
-        className="w-full h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[650px] max-h-[900px] bg-[#0a0a0a]"
+        plugins={[autoplay]}
+        className="w-full h-[min(82svh,700px)] md:h-[85vh] min-h-[520px] md:min-h-[650px] max-h-[900px] bg-[#0a0a0a]"
         opts={{ loop: true }}
       >
         <CarouselContent className="h-full">
@@ -155,11 +161,13 @@ export function Hero({ items }: HeroProps) {
             const title = movie.title || movie.name;
             const isActive = index === current;
             const genresString = getGenreNames(movie.genre_ids, movie.media_type);
+            const releaseInfo = getMediaReleaseInfo(movie.release_date || movie.first_air_date);
+            const providerKey = `${movie.media_type}:${movie.id}`;
 
             return (
               <CarouselItem
                 key={movie.id}
-                className="relative w-full h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[650px] max-h-[900px] overflow-hidden select-none"
+                className="relative w-full h-[min(82svh,700px)] md:h-[85vh] min-h-[520px] md:min-h-[650px] max-h-[900px] overflow-hidden select-none"
               >
                 {/* Clean backdrop image background (no blur, no silhouette cutout) */}
                 <div className="absolute inset-0 w-full h-full">
@@ -177,13 +185,13 @@ export function Hero({ items }: HeroProps) {
                 </div>
 
                 {/* Text content & single Watch Trailer button */}
-                <div className="relative h-full flex items-center container mx-auto px-6 md:px-12 z-20">
-                  <div className="max-w-2xl space-y-4 md:space-y-6 text-left">
+                <div className="relative h-full flex items-end pb-10 md:items-center md:pb-0 container mx-auto px-4 sm:px-6 md:px-12 z-20">
+                  <div className="max-w-2xl space-y-3 sm:space-y-4 md:space-y-6 text-left">
                     <motion.div
                       initial={{ opacity: 0, y: 15 }}
                       animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
                       transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-                      className="space-y-4 md:space-y-6"
+                      className="space-y-3 sm:space-y-4 md:space-y-6"
                     >
                       {/* Trending Badge */}
                       <Badge
@@ -194,22 +202,28 @@ export function Hero({ items }: HeroProps) {
                       </Badge>
 
                       {/* Title */}
-                      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight uppercase leading-[1.05] drop-shadow-md">
-                        {title}
+                      <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight uppercase leading-[1.05] drop-shadow-md">
+                        <Link
+                          href={`/${movie.media_type}/${movie.id}`}
+                          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+                          aria-label={`View details for ${title}`}
+                        >
+                          {title}
+                        </Link>
                       </h1>
 
                       {/* Metadata Line */}
                       <div className="flex flex-wrap items-center gap-2 md:gap-3.5 text-xs md:text-sm font-semibold text-gray-300">
-                        <span className="flex items-center gap-1 text-blue-400">
-                          <StarIcon className="w-3.5 h-3.5 fill-current" />
-                          {movie.vote_average.toFixed(1)}
-                        </span>
+                        {movie.vote_average > 0 ? (
+                          <span className="flex items-center gap-1 text-blue-400">
+                            <StarIcon className="w-3.5 h-3.5 fill-current" />
+                            {formatMediaRating(movie.vote_average)}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">{formatMediaRating(movie.vote_average)}</span>
+                        )}
                         <span className="text-gray-600">•</span>
-                        <span>
-                          {new Date(
-                            movie.release_date || movie.first_air_date || ""
-                          ).getFullYear()}
-                        </span>
+                        <span>{releaseInfo.year}{releaseInfo.isUpcoming ? " • Upcoming" : ""}</span>
                         {genresString && (
                           <>
                             <span className="text-gray-600">•</span>
@@ -219,7 +233,7 @@ export function Hero({ items }: HeroProps) {
                       </div>
 
                       {/* Overview description */}
-                      <p className="text-sm sm:text-base md:text-lg text-gray-300 line-clamp-3 leading-relaxed max-w-xl drop-shadow-md">
+                      <p className="text-sm sm:text-base md:text-lg text-gray-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl drop-shadow-md">
                         {movie.overview}
                       </p>
 
@@ -228,7 +242,7 @@ export function Hero({ items }: HeroProps) {
                         {loadingProviders ? (
                           <div className="flex flex-col gap-2">
                             <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                              Streaming
+                              Checking availability
                             </span>
                             <div className="flex gap-2">
                               <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse border border-white/5" />
@@ -237,7 +251,7 @@ export function Hero({ items }: HeroProps) {
                             </div>
                           </div>
                         ) : (() => {
-                          const providers = watchProviders[movie.id];
+                          const providers = watchProviders[providerKey];
                           const flatrate = providers?.flatrate || [];
                           const free = providers?.free || [];
                           const rent = providers?.rent || [];
@@ -304,16 +318,22 @@ export function Hero({ items }: HeroProps) {
                             return (
                               <div className="flex flex-col gap-1.5">
                                 <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                                  Streaming
+                                  Availability
                                 </span>
-                                <a
-                                  href={providers?.link || `https://www.justwatch.com`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-zinc-400 hover:text-white hover:underline flex items-center gap-1 cursor-pointer font-medium"
-                                >
-                                  Check JustWatch Availability
-                                </a>
+                                {providers?.link ? (
+                                  <a
+                                    href={providers.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-zinc-400 hover:text-white hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                                  >
+                                    No listings found for {country} · Check JustWatch
+                                  </a>
+                                ) : (
+                                  <span className="text-xs text-zinc-400">
+                                    Availability information unavailable for {country}
+                                  </span>
+                                )}
                               </div>
                             );
                           }
@@ -321,12 +341,12 @@ export function Hero({ items }: HeroProps) {
                       </div>
 
                       {/* Action buttons - Single Watch Trailer button */}
-                      <div className="flex flex-wrap items-center gap-4 pt-2">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-1 sm:pt-2">
                         <Button
                           size="default"
                           disabled={loadingTrailerId === movie.id}
                           onClick={() => handleWatchTrailer(movie.id, movie.media_type)}
-                          className="bg-white text-black hover:bg-white/90 gap-2 font-bold rounded-full px-6 md:px-8 py-5 md:py-6 text-sm md:text-base transition-transform hover:scale-105 shadow-md shadow-white/5 cursor-pointer disabled:opacity-80"
+                          className="min-h-11 bg-white text-black hover:bg-white/90 gap-2 font-bold rounded-full px-6 md:px-8 py-5 md:py-6 text-sm md:text-base transition-transform hover:scale-105 shadow-md shadow-white/5 cursor-pointer disabled:opacity-80"
                         >
                           {loadingTrailerId === movie.id ? (
                             <>

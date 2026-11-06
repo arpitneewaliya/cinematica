@@ -10,6 +10,7 @@ import { searchMediaAction } from "@/app/actions/media";
 import { getImageUrl } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -217,11 +218,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 Matching Suggestions
               </div>
               {results.map((item, idx) => {
-                const year = item.release_date 
-                  ? new Date(item.release_date).getFullYear() 
-                  : item.first_air_date 
-                  ? new Date(item.first_air_date).getFullYear()
-                  : "";
+                const releaseInfo = getMediaReleaseInfo(item.release_date || item.first_air_date);
                 
                 const isItemActive = idx === activeIndex;
 
@@ -261,9 +258,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         <span className="font-semibold text-sm text-white truncate">
                           {item.title || item.name}
                         </span>
-                        {year && (
+                        {releaseInfo.year && (
                           <span className="text-xs text-zinc-500 font-medium shrink-0">
-                            {year}
+                            {releaseInfo.year}{releaseInfo.isUpcoming ? " · Upcoming" : ""}
                           </span>
                         )}
                       </div>
@@ -285,12 +282,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       >
                         {item.media_type === "movie" ? "Movie" : "TV"}
                       </Badge>
-                      {item.vote_average > 0 && (
-                        <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-medium">
-                          <Star className="w-3 h-3 fill-current" />
-                          {item.vote_average.toFixed(1)}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-medium">
+                        {item.vote_average > 0 && <Star className="w-3 h-3 fill-current" />}
+                        {formatMediaRating(item.vote_average)}
+                      </div>
                     </div>
                   </Link>
                 );
