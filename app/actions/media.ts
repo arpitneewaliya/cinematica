@@ -1,6 +1,6 @@
 "use server";
 
-import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, getMovieVideos, getTVVideos, getMediaWatchProviders, CountryWatchProviders } from "@/lib/tmdb";
+import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, fetchTrendingMedia, getMovieVideos, getTVVideos, getMediaWatchProviders, CountryWatchProviders } from "@/lib/tmdb";
 import { Video } from "@/types/tmdb";
 
 export async function fetchMediaChunk(
@@ -40,6 +40,16 @@ export async function searchMediaAction(query: string): Promise<TMDBItem[]> {
     return items;
   } catch (error) {
     console.error("Error searching media:", error);
+    return [];
+  }
+}
+
+export async function getTrendingMediaAction(): Promise<TMDBItem[]> {
+  try {
+    const items = await fetchTrendingMedia();
+    return items.slice(0, 6);
+  } catch (error) {
+    console.error("Error fetching trending media:", error);
     return [];
   }
 }
