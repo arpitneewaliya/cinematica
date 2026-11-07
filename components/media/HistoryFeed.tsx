@@ -83,7 +83,7 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Watches</p>
-              <h3 className="text-3xl md:text-4xl font-extrabold text-white mt-1.5">{items.length}</h3>
+              <h3 className="font-heading text-3xl md:text-4xl font-extrabold text-white mt-1.5 tabular-nums">{items.length}</h3>
               <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1 font-medium">
                 <Video className="w-3.5 h-3.5" /> Movies & TV Shows logged
               </p>
@@ -99,7 +99,7 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Time Spent</p>
-              <h3 className="text-3xl md:text-4xl font-extrabold text-white mt-1.5">{formatRuntime(stats.totalRuntime)}</h3>
+              <h3 className="font-heading text-3xl md:text-4xl font-extrabold text-white mt-1.5 tabular-nums">{formatRuntime(stats.totalRuntime)}</h3>
               <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1 font-medium">
                 <Clock className="w-3.5 h-3.5" /> Total watch duration
               </p>
@@ -115,7 +115,7 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Average Rating</p>
-              <h3 className="text-3xl md:text-4xl font-extrabold text-white mt-1.5">
+              <h3 className="font-heading text-3xl md:text-4xl font-extrabold text-white mt-1.5 tabular-nums">
                 {stats.averageRating > 0 ? `${stats.averageRating}` : "—"}
               </h3>
               <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1 font-medium">
@@ -262,23 +262,23 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <Link 
                           href={`/${item.mediaType}/${item.mediaId}`}
-                          className="font-bold text-white text-base md:text-lg hover:text-primary hover:underline transition-all truncate pr-4"
+                          className="font-heading font-bold text-white text-base md:text-lg hover:text-primary hover:underline transition-all tracking-tight truncate pr-4"
                         >
                           {item.title}
                         </Link>
                         {releaseYear && (
-                          <span className="text-xs font-semibold text-gray-500 select-none">
+                          <span className="text-xs font-semibold text-zinc-400 select-none tabular-nums">
                             ({releaseYear})
                           </span>
                         )}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 select-none">
-                        <Badge variant="outline" className="bg-white/5 border-white/10 text-gray-400 capitalize px-2 py-0 h-auto text-[10px] md:text-xs">
+                        <Badge variant="outline" className="bg-white/5 border-white/10 text-zinc-300 capitalize px-2 py-0 h-auto text-[10px] md:text-xs font-medium">
                           {item.mediaType === "movie" ? "Movie" : "TV Show"}
                         </Badge>
-                        <span className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-gray-500" />
+                        <span className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium tabular-nums">
+                          <Calendar className="w-3.5 h-3.5 text-zinc-400" />
                           Logged on {watchedDate}
                         </span>
                         {item.rating && (
@@ -299,7 +299,7 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
                     </div>
 
                     {item.notes && (
-                      <div className="mt-3 text-xs md:text-sm text-gray-300 bg-white/5 p-3 rounded-xl border border-white/5 leading-relaxed relative pr-8">
+                      <div className="mt-3 text-xs md:text-sm text-zinc-200 bg-white/5 p-3 rounded-xl border border-white/5 leading-relaxed relative pr-8">
                         &ldquo;{item.notes}&rdquo;
                       </div>
                     )}

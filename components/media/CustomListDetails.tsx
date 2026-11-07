@@ -93,16 +93,16 @@ export function CustomListDetails({ list }: CustomListDetailsProps) {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3">
-            <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+            <h1 className="font-heading text-2xl md:text-4xl font-extrabold text-white tracking-tight">
               {list.name}
             </h1>
             {list.description && (
-              <p className="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl font-medium">
+              <p className="text-sm md:text-base text-zinc-300 leading-relaxed max-w-2xl font-normal">
                 {list.description}
               </p>
             )}
           </div>
-          <Badge className="bg-primary/20 text-primary border-none select-none text-xs md:text-sm px-4 py-1.5 rounded-full flex items-center gap-2 w-fit">
+          <Badge className="bg-primary/20 text-primary border-none select-none text-xs md:text-sm px-4 py-1.5 rounded-full flex items-center gap-2 w-fit tabular-nums font-semibold">
             <Layers className="w-4 h-4" /> {items.length} {items.length === 1 ? "Item" : "Items"}
           </Badge>
         </div>
@@ -160,14 +160,14 @@ export function CustomListDetails({ list }: CustomListDetailsProps) {
                     </div>
 
                     <CardContent className="absolute bottom-0 w-full p-3 transform translate-y-1.5 transition-transform duration-300 group-hover:translate-y-0">
-                      <h3 className="font-bold text-sm md:text-base text-white truncate drop-shadow-md">
+                      <h3 className="font-heading font-bold text-sm md:text-base text-white tracking-tight truncate drop-shadow-md">
                         {item.title}
                       </h3>
-                      <p className="text-[10px] md:text-xs text-gray-300 font-semibold flex items-center gap-1 select-none mt-0.5">
+                      <p className="text-[10px] md:text-xs text-zinc-300 font-medium tabular-nums flex items-center gap-1 select-none mt-0.5">
                         {item.mediaType === "movie" ? (
-                          <Film className="w-3 h-3 text-gray-400" />
+                          <Film className="w-3 h-3 text-zinc-400" />
                         ) : (
-                          <Tv className="w-3 h-3 text-gray-400" />
+                          <Tv className="w-3 h-3 text-zinc-400" />
                         )}
                         <span>{year}{isUpcoming ? " • Upcoming" : ""}{year || isUpcoming ? " • " : ""}{item.mediaType === "movie" ? "Movie" : "TV"}</span>
                       </p>

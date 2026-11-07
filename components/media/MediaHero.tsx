@@ -214,22 +214,22 @@ export function MediaHero({
               ? "opacity-0 translate-y-4 pointer-events-none select-none" 
               : "opacity-100 translate-y-0"
           )}>
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] tracking-tight leading-tight">
+            <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] tracking-tight leading-tight">
               {title}
             </h1>
 
-            <div className="flex flex-wrap items-center justify-start gap-2 md:gap-4 text-xs md:text-sm font-semibold text-gray-200">
-              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-500 border-none gap-1 py-0.5">
+            <div className="flex flex-wrap items-center justify-start gap-2 md:gap-4 text-xs md:text-sm font-semibold text-zinc-200">
+              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-none gap-1 py-0.5 tabular-nums font-semibold">
                 <Star className="w-3.5 h-3.5 fill-current" />
                 {rating.toFixed(1)}
               </Badge>
               {year && (
-                <span className="flex items-center gap-1 drop-shadow-md">
+                <span className="flex items-center gap-1 drop-shadow-md tabular-nums text-zinc-300 font-medium">
                   <Calendar className="w-4 h-4" /> {year}
                 </span>
               )}
               {runtime ? (
-                <span className="flex items-center gap-1 drop-shadow-md">
+                <span className="flex items-center gap-1 drop-shadow-md tabular-nums text-zinc-300 font-medium">
                   <Clock className="w-4 h-4" /> {Math.floor(runtime / 60)}h {runtime % 60}m
                 </span>
               ) : null}
@@ -237,7 +237,7 @@ export function MediaHero({
 
             <div className="flex flex-wrap items-center justify-start gap-2 mt-1">
               {genres.map((g) => (
-                <Badge key={g.id} variant="outline" className="border-white/20 text-gray-200 backdrop-blur-md bg-black/20">
+                <Badge key={g.id} variant="outline" className="border-white/20 text-zinc-200 backdrop-blur-md bg-black/30 font-medium text-xs px-2.5 py-0.5">
                   {g.name}
                 </Badge>
               ))}
@@ -300,17 +300,17 @@ export function MediaHero({
           {/* Details & Info Column */}
           <div className="flex-1 text-left flex flex-col gap-6">
             <div>
-              <h2 className="text-xl md:text-2xl font-bold text-white mb-3">Synopsis</h2>
-              <p className="text-gray-300 text-sm md:text-base lg:text-lg leading-relaxed max-w-4xl">
+              <h2 className="font-heading text-xl md:text-2xl font-bold text-white mb-3">Synopsis</h2>
+              <p className="text-zinc-200 text-base md:text-lg leading-relaxed max-w-3xl font-normal">
                 {overview || "No synopsis available."}
               </p>
             </div>
 
             {/* Watch Providers / Streaming availability */}
             <div className="border-t border-white/5 pt-6">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <span>Watch Options</span>
-                <Badge variant="outline" className="text-xs uppercase border-white/10 text-zinc-400 font-semibold px-2 py-0.5 rounded">
+                <Badge variant="outline" className="text-xs uppercase border-white/10 text-zinc-300 font-semibold px-2 py-0.5 rounded">
                   {country}
                 </Badge>
               </h3>

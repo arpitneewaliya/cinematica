@@ -16,7 +16,7 @@ export default async function WatchlistPage() {
   return (
     <main className="min-h-screen bg-background pt-20 md:pt-24 pb-16">
       <div className="container mx-auto px-4 md:px-8">
-        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white mb-6 md:mb-8 flex items-center gap-3">
+        <h1 className="font-heading text-2xl md:text-4xl font-bold tracking-tight text-white mb-6 md:mb-8 flex items-center gap-3">
           <span className="w-2 h-10 bg-primary rounded-full inline-block"></span>
           My Watchlist
         </h1>
@@ -60,10 +60,10 @@ export default async function WatchlistPage() {
                     </div>
                     
                     <CardContent className="absolute bottom-0 w-full p-2.5 md:p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
-                      <h3 className="font-bold text-sm md:text-lg text-white truncate drop-shadow-md">
+                      <h3 className="font-heading font-bold text-sm md:text-base text-white tracking-tight truncate drop-shadow-md">
                         {item.title}
                       </h3>
-                      <p className="text-xs md:text-sm text-gray-300 font-medium capitalize">
+                      <p className="text-xs md:text-sm text-zinc-300 font-medium capitalize tabular-nums">
                         {year}{isUpcoming ? " • Upcoming" : ""}{year || isUpcoming ? " • " : ""}{item.mediaType}
                       </p>
                     </CardContent>

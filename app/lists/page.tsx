@@ -21,11 +21,11 @@ export default async function CustomListsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8 md:mb-12">
           <div>
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
+            <h1 className="font-heading text-2xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
               <span className="w-2 h-10 bg-primary rounded-full inline-block"></span>
               My Custom Lists
             </h1>
-            <p className="text-sm text-gray-400 font-medium mt-1">
+            <p className="text-sm text-zinc-300 font-medium mt-1">
               Create and manage collections of movies and TV shows.
             </p>
           </div>
@@ -85,7 +85,7 @@ export default async function CustomListsPage() {
                         )}
                         {/* Overlay Item Count Badge */}
                         <div className="absolute bottom-2.5 left-2.5">
-                          <Badge className="bg-black/85 backdrop-blur-md border border-white/10 text-white font-bold select-none text-[10px] md:text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-lg">
+                          <Badge className="bg-black/85 backdrop-blur-md border border-white/10 text-white font-bold select-none text-[10px] md:text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-lg tabular-nums">
                             <Layers className="w-3.5 h-3.5 text-primary" />
                             {itemCount} {itemCount === 1 ? "item" : "items"}
                           </Badge>
@@ -94,12 +94,12 @@ export default async function CustomListsPage() {
 
                       {/* List Info */}
                       <div className="space-y-1">
-                        <h3 className="font-bold text-white text-base md:text-lg truncate group-hover:text-primary transition-colors flex items-center justify-between">
+                        <h3 className="font-heading font-bold text-white text-base md:text-lg tracking-tight truncate group-hover:text-primary transition-colors flex items-center justify-between">
                           {list.name}
                           <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-primary transition-all group-hover:translate-x-0.5" />
                         </h3>
                         {list.description && (
-                          <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                          <p className="text-xs text-zinc-300 line-clamp-2 leading-relaxed">
                             {list.description}
                           </p>
                         )}

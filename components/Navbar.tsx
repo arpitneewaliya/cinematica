@@ -92,7 +92,7 @@ export function Navbar() {
         <div className="flex items-center gap-4 md:gap-12">
           {/* Logo */}
           <Link href="/" className="group flex items-center gap-2 md:gap-3">
-            <span className="text-xl md:text-2xl font-black tracking-tighter bg-gradient-to-br from-white via-white to-gray-400 bg-clip-text text-transparent group-hover:to-gray-200 transition-colors duration-300">
+            <span className="font-heading text-xl md:text-2xl font-black tracking-tight bg-gradient-to-br from-white via-white to-gray-400 bg-clip-text text-transparent group-hover:to-gray-200 transition-colors duration-300">
               Cinematica
             </span>
           </Link>

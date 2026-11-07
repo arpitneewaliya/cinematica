@@ -271,7 +271,7 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
   return (
     <div className="container mx-auto px-4 md:px-8 py-6 md:py-8 pt-20 md:pt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
+        <h1 className="font-heading text-2xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
           <span className="w-2 h-10 bg-primary rounded-full inline-block"></span>
           {title}
         </h1>

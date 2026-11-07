@@ -61,7 +61,7 @@ export function CastRow({ cast }: CastRowProps) {
   return (
     <section className="py-8 md:py-12">
       <div className="container mx-auto px-4 md:px-8">
-        <h2 className="text-xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2 mb-4 md:mb-6">
+        <h2 className="font-heading text-xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2 mb-4 md:mb-6">
           <span className="w-1.5 h-8 bg-primary rounded-full inline-block"></span>
           Top Cast
         </h2>
@@ -124,10 +124,10 @@ export function CastRow({ cast }: CastRowProps) {
                     </span>
                   </div>
                 </div>
-                <h4 className="font-semibold text-white text-sm md:text-base truncate group-hover:text-primary transition-colors">
+                <h4 className="font-heading font-semibold text-white text-sm md:text-base tracking-tight truncate group-hover:text-primary transition-colors">
                   {actor.name}
                 </h4>
-                <p className="text-xs md:text-sm text-gray-400 truncate">
+                <p className="text-xs md:text-sm text-zinc-400 font-normal truncate">
                   {actor.character}
                 </p>
               </a>

@@ -208,7 +208,7 @@ export function Hero({ items }: HeroProps) {
                       </Badge>
 
                       {/* Title */}
-                      <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight uppercase leading-[1.05] drop-shadow-md">
+                      <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight uppercase leading-[1.05] drop-shadow-md">
                         <Link
                           href={`/${movie.media_type}/${movie.id}`}
                           className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
@@ -232,27 +232,27 @@ export function Hero({ items }: HeroProps) {
                       </h1>
 
                       {/* Metadata Line */}
-                      <div className="flex flex-wrap items-center gap-2 md:gap-3.5 text-xs md:text-sm font-semibold text-gray-300">
+                      <div className="flex flex-wrap items-center gap-2 md:gap-3.5 text-xs md:text-sm font-semibold text-zinc-300">
                         {movie.vote_average > 0 ? (
-                          <span className="flex items-center gap-1 text-blue-400">
+                          <span className="flex items-center gap-1 text-blue-400 tabular-nums">
                             <StarIcon className="w-3.5 h-3.5 fill-current" />
                             {formatMediaRating(movie.vote_average)}
                           </span>
                         ) : (
-                          <span className="text-zinc-400">{formatMediaRating(movie.vote_average)}</span>
+                          <span className="text-zinc-400 tabular-nums">{formatMediaRating(movie.vote_average)}</span>
                         )}
-                        <span className="text-gray-600">•</span>
-                        <span>{releaseInfo.year}{releaseInfo.isUpcoming ? " • Upcoming" : ""}</span>
+                        <span className="text-zinc-500">•</span>
+                        <span className="tabular-nums">{releaseInfo.year}{releaseInfo.isUpcoming ? " • Upcoming" : ""}</span>
                         {genresString && (
                           <>
-                            <span className="text-gray-600">•</span>
-                            <span>{genresString}</span>
+                            <span className="text-zinc-500">•</span>
+                            <span className="text-zinc-200">{genresString}</span>
                           </>
                         )}
                       </div>
 
                       {/* Overview description */}
-                      <p className="text-sm sm:text-base md:text-lg text-gray-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl drop-shadow-md">
+                      <p className="text-sm sm:text-base md:text-lg text-zinc-200 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl drop-shadow-md font-normal">
                         {movie.overview}
                       </p>
 

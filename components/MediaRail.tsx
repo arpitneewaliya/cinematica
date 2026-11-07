@@ -53,11 +53,11 @@ export function MediaRail({
       <div className="container mx-auto px-4 sm:px-6 md:px-8">
         <div className="mb-3 flex items-end justify-between gap-4 md:mb-4">
           <div>
-            <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-primary/70">
+            <p className="font-heading mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-primary/80">
               <Sparkles className="size-3" aria-hidden="true" />
               {eyebrow}
             </p>
-            <h2 id={`${title}-heading`} className="text-lg font-bold tracking-tight text-white sm:text-xl md:text-2xl">
+            <h2 id={`${title}-heading`} className="font-heading text-lg font-bold tracking-tight text-white sm:text-xl md:text-2xl">
               {title}
             </h2>
           </div>

@@ -255,16 +255,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     {/* Metadata */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-white truncate">
+                        <span className="font-heading font-semibold text-sm text-white truncate">
                           {item.title || item.name}
                         </span>
                         {releaseInfo.year && (
-                          <span className="text-xs text-zinc-500 font-medium shrink-0">
+                          <span className="text-xs text-zinc-400 font-medium shrink-0 tabular-nums">
                             {releaseInfo.year}{releaseInfo.isUpcoming ? " · Upcoming" : ""}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-zinc-400 truncate mt-0.5">
+                      <p className="text-xs text-zinc-300 truncate mt-0.5">
                         {item.overview || "No overview description available."}
                       </p>
                     </div>
@@ -274,7 +274,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       <Badge 
                         variant="secondary" 
                         className={cn(
-                          "text-[9px] uppercase tracking-wider px-1.5 py-0 border-none rounded-full",
+                          "text-[9px] uppercase tracking-wider px-1.5 py-0 border-none rounded-full font-semibold",
                           item.media_type === "movie" 
                             ? "bg-indigo-500/10 text-indigo-400" 
                             : "bg-teal-500/10 text-teal-400"
@@ -282,7 +282,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       >
                         {item.media_type === "movie" ? "Movie" : "TV"}
                       </Badge>
-                      <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-medium">
+                      <div className="flex items-center gap-1 text-[10px] text-yellow-500 font-medium tabular-nums">
                         {item.vote_average > 0 && <Star className="w-3 h-3 fill-current" />}
                         {formatMediaRating(item.vote_average)}
                       </div>

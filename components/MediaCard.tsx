@@ -40,7 +40,7 @@ export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCar
           )}
 
           <div className="absolute right-1.5 top-1.5 md:right-2 md:top-2">
-            <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-none text-white gap-1 font-semibold text-[10px] md:text-xs">
+            <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border border-white/10 text-white gap-1 font-semibold text-[10px] md:text-xs tabular-nums">
               {item.vote_average > 0 && (
                 <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-yellow-400 text-yellow-400" />
               )}
@@ -52,10 +52,10 @@ export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCar
         </div>
         
         <CardContent className="absolute bottom-0 w-full p-2.5 md:p-4 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
-          <h3 className="font-bold text-sm md:text-lg text-white truncate drop-shadow-md">
+          <h3 className="font-heading font-bold text-sm md:text-base text-white tracking-tight truncate drop-shadow-md">
             {title}
           </h3>
-          <p className="text-xs md:text-sm text-gray-300 font-medium">
+          <p className="text-xs md:text-sm text-zinc-300 font-medium tabular-nums">
             {year}{isUpcoming ? " • Upcoming" : ""}{year || isUpcoming ? " • " : ""}{item.media_type === "movie" ? "Movie" : "TV Show"}
           </p>
         </CardContent>
