@@ -145,3 +145,18 @@ export interface PersonSearchResult {
   }>;
 }
 
+export interface PersonProfileImage {
+  aspect_ratio: number;
+  file_path: string;
+  height: number;
+  width: number;
+  vote_average: number;
+  vote_count: number;
+}
+
+export interface PersonImagesResponse {
+  id: number;
+  profiles: PersonProfileImage[];
+}
+
+

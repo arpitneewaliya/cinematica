@@ -4,11 +4,13 @@ import {
   getPersonDetails,
   getPersonCombinedCredits,
   getPersonExternalIds,
+  getPersonImages,
   TMDBItem,
 } from "@/lib/tmdb";
 import { PersonSidebar } from "@/components/person/PersonSidebar";
 import { PersonBio } from "@/components/person/PersonBio";
 import { PersonKnownFor } from "@/components/person/PersonKnownFor";
+import { PersonPhotos } from "@/components/person/PersonPhotos";
 import { PersonFilmography } from "@/components/person/PersonFilmography";
 
 interface Props {
@@ -40,10 +42,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PersonPage({ params }: Props) {
   const { id } = await params;
 
-  const [person, credits, externalIds] = await Promise.all([
+  const [person, credits, externalIds, images] = await Promise.all([
     getPersonDetails(id),
     getPersonCombinedCredits(id),
     getPersonExternalIds(id),
+    getPersonImages(id),
   ]);
 
   if (!person || !person.name) {
@@ -112,6 +115,11 @@ export default async function PersonPage({ params }: Props) {
 
             {/* Known For Carousel */}
             {knownForItems.length > 0 && <PersonKnownFor items={knownForItems} />}
+
+            {/* Photos Carousel & Lightbox */}
+            {images?.profiles && images.profiles.length > 0 && (
+              <PersonPhotos images={images.profiles} name={person.name} />
+            )}
 
             {/* Complete Filmography with Filters */}
             <PersonFilmography credits={credits?.cast || []} />

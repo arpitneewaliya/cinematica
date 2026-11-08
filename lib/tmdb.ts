@@ -179,6 +179,7 @@ import {
   PersonExternalIds,
   PersonCreditsResponse,
   PersonSearchResult,
+  PersonImagesResponse,
 } from "@/types/tmdb";
 
 export async function getPersonDetails(id: string | number): Promise<PersonDetails | null> {
@@ -191,6 +192,10 @@ export async function getPersonCombinedCredits(id: string | number): Promise<Per
 
 export async function getPersonExternalIds(id: string | number): Promise<PersonExternalIds | null> {
   return fetchFromTMDB<PersonExternalIds>(`/person/${id}/external_ids`).catch(() => null);
+}
+
+export async function getPersonImages(id: string | number): Promise<PersonImagesResponse | null> {
+  return fetchFromTMDB<PersonImagesResponse>(`/person/${id}/images`).catch(() => null);
 }
 
 interface TMDBPersonSearchResponse {
