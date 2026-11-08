@@ -170,7 +170,38 @@ export async function fetchMoviesByIds(movieIds: number[]): Promise<TMDBItem[]> 
   return movies.filter((movie) => movie !== null);
 }
 
-import { MovieDetails, TVDetails, CreditsResponse, VideosResponse } from "@/types/tmdb";
+import {
+  MovieDetails,
+  TVDetails,
+  CreditsResponse,
+  VideosResponse,
+  PersonDetails,
+  PersonExternalIds,
+  PersonCreditsResponse,
+  PersonSearchResult,
+} from "@/types/tmdb";
+
+export async function getPersonDetails(id: string | number): Promise<PersonDetails | null> {
+  return fetchFromTMDB<PersonDetails>(`/person/${id}`).catch(() => null);
+}
+
+export async function getPersonCombinedCredits(id: string | number): Promise<PersonCreditsResponse | null> {
+  return fetchFromTMDB<PersonCreditsResponse>(`/person/${id}/combined_credits`).catch(() => null);
+}
+
+export async function getPersonExternalIds(id: string | number): Promise<PersonExternalIds | null> {
+  return fetchFromTMDB<PersonExternalIds>(`/person/${id}/external_ids`).catch(() => null);
+}
+
+interface TMDBPersonSearchResponse {
+  results: PersonSearchResult[];
+}
+
+export async function searchPeople(query: string): Promise<PersonSearchResult[]> {
+  if (!query) return [];
+  const data = await fetchFromTMDB<TMDBPersonSearchResponse>(`/search/person?query=${encodeURIComponent(query)}`);
+  return data?.results || [];
+}
 
 export async function getMovieDetails(id: string): Promise<MovieDetails | null> {
   return fetchFromTMDB<MovieDetails>(`/movie/${id}`).catch(() => null);
