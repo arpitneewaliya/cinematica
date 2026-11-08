@@ -54,6 +54,22 @@ export interface CastMember {
   profile_path: string | null;
 }
 
+export interface AggregateCastMember {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  roles: Array<{
+    character: string;
+    episode_count: number;
+  }>;
+  total_episode_count: number;
+  order: number;
+}
+
+export interface AggregateCreditsResponse {
+  cast: AggregateCastMember[];
+}
+
 export interface CreditsResponse {
   cast: CastMember[];
 }

@@ -180,6 +180,7 @@ import {
   PersonCreditsResponse,
   PersonSearchResult,
   PersonImagesResponse,
+  AggregateCreditsResponse,
 } from "@/types/tmdb";
 
 export async function getPersonDetails(id: string | number): Promise<PersonDetails | null> {
@@ -221,7 +222,22 @@ export async function getMovieCredits(id: string): Promise<CreditsResponse | nul
 }
 
 export async function getTVCredits(id: string): Promise<CreditsResponse | null> {
-  return fetchFromTMDB<CreditsResponse>(`/tv/${id}/credits`).catch(() => null);
+  try {
+    const data = await fetchFromTMDB<AggregateCreditsResponse>(`/tv/${id}/aggregate_credits`);
+    if (!data?.cast) return null;
+
+    // Normalize aggregate cast into CastMember shape
+    const cast = data.cast.map((member) => ({
+      id: member.id,
+      name: member.name,
+      profile_path: member.profile_path,
+      character: member.roles?.map((r) => r.character).filter(Boolean).join(", ") || "",
+    }));
+
+    return { cast };
+  } catch {
+    return null;
+  }
 }
 
 export async function getMovieVideos(id: string): Promise<VideosResponse | null> {

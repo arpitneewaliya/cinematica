@@ -46,7 +46,7 @@ export function CastRow({ cast }: CastRowProps) {
 
   if (!cast || cast.length === 0) return null;
 
-  const topCast = cast.slice(0, 10);
+  const topCast = cast.slice(0, 40);
 
   const handleScroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
