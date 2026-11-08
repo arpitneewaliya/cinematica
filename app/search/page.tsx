@@ -1,7 +1,7 @@
-import { searchMedia } from "@/lib/tmdb";
+import { searchMedia, searchPeople } from "@/lib/tmdb";
 import { MediaCard } from "@/components/MediaCard";
+import { PersonCard } from "@/components/person/PersonCard";
 import { SearchX } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -19,7 +19,14 @@ export default async function SearchPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const query = typeof resolvedParams.q === "string" ? resolvedParams.q : "";
   
-  const results = await searchMedia(query);
+  const [results, peopleResults] = await Promise.all([
+    searchMedia(query),
+    searchPeople(query),
+  ]);
+
+  // Filter people with pictures or known work, limit to top 10
+  const people = peopleResults.slice(0, 10);
+  const hasNoResults = results.length === 0 && people.length === 0;
 
   return (
     <main className="min-h-screen bg-background pb-16">
@@ -29,21 +36,49 @@ export default async function SearchPage({ searchParams }: Props) {
           <span>Search Results for</span> <span className="text-primary">&ldquo;{query}&rdquo;</span>
         </h1>
 
-        {results.length === 0 ? (
+        {hasNoResults ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
               <SearchX className="w-12 h-12 text-gray-500" />
             </div>
             <h2 className="font-heading text-2xl font-semibold text-white mb-2">No results found</h2>
             <p className="text-zinc-300 max-w-md">
-              We couldn&apos;t find any movies or TV shows matching &ldquo;{query}&rdquo;. Try adjusting your search or checking for typos.
+              We couldn&apos;t find any movies, TV shows, or people matching &ldquo;{query}&rdquo;. Try adjusting your search or checking for typos.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
-            {results.map((item) => (
-              <MediaCard key={item.id} item={item} />
-            ))}
+          <div className="space-y-10 sm:space-y-12">
+            {people.length > 0 && (
+              <section>
+                <h2 className="font-heading text-lg sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2 mb-4 md:mb-6">
+                  <span className="w-1.5 h-6 bg-primary rounded-full inline-block"></span>
+                  People
+                  <span className="text-xs font-normal text-zinc-400">({people.length})</span>
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
+                  {people.map((person) => (
+                    <PersonCard key={person.id} person={person} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {results.length > 0 && (
+              <section>
+                {people.length > 0 && (
+                  <h2 className="font-heading text-lg sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2 mb-4 md:mb-6">
+                    <span className="w-1.5 h-6 bg-primary rounded-full inline-block"></span>
+                    Movies & TV Shows
+                    <span className="text-xs font-normal text-zinc-400">({results.length})</span>
+                  </h2>
+                )}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
+                  {results.map((item) => (
+                    <MediaCard key={item.id} item={item} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>
