@@ -12,16 +12,22 @@ interface PersonPhotosProps {
   name: string;
 }
 
+const PHOTO_BATCH_SIZE = 20;
+
 export function PersonPhotos({ images, name }: PersonPhotosProps) {
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = React.useState(() =>
+    Math.min(PHOTO_BATCH_SIZE, images.length)
+  );
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = React.useState(false);
   const [showRightArrow, setShowRightArrow] = React.useState(false);
 
-  // Take top 20 images
   const displayImages = React.useMemo(() => {
-    return (images || []).slice(0, 20);
-  }, [images]);
+    return images.slice(0, visibleCount);
+  }, [images, visibleCount]);
+
+  const hasMoreImages = visibleCount < images.length;
 
   const checkScroll = React.useCallback(() => {
     if (scrollContainerRef.current) {
@@ -100,7 +106,7 @@ export function PersonPhotos({ images, name }: PersonPhotosProps) {
           <span className="w-1.5 h-6 bg-primary rounded-full inline-block"></span>
           Photos
           <span className="text-xs font-normal text-zinc-400 ml-1">
-            ({displayImages.length})
+            (Showing {displayImages.length} of {images.length})
           </span>
         </h2>
       </div>
@@ -159,6 +165,22 @@ export function PersonPhotos({ images, name }: PersonPhotosProps) {
           ))}
         </div>
       </div>
+
+      {hasMoreImages && (
+        <div className="flex justify-center pt-1">
+          <button
+            type="button"
+            onClick={() =>
+              setVisibleCount((currentCount) =>
+                Math.min(currentCount + PHOTO_BATCH_SIZE, images.length)
+              )
+            }
+            className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all duration-300 hover:border-primary/60 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/20 cursor-pointer"
+          >
+            Load 20 more photos
+          </button>
+        </div>
+      )}
 
       {/* Fullscreen Interactive Lightbox Modal */}
       {lightboxIndex !== null && currentImage && (
