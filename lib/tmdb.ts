@@ -135,10 +135,10 @@ export async function fetchTopRatedMovies(): Promise<TMDBItem[]> {
   return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'movie' }));
 }
 
-export async function fetchPopularTvShows(): Promise<TMDBItem[]> {
-  const data = await fetchFromTMDB<TMDBResponse>('/tv/popular');
-  return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'tv' }));
-}
+// export async function fetchPopularTvShows(): Promise<TMDBItem[]> {
+//   const data = await fetchFromTMDB<TMDBResponse>('/tv/popular');
+//   return data.results.slice(0, 20).map(item => ({ ...item, media_type: 'tv' }));
+// }
 
 export async function fetchTopRatedTvShows(): Promise<TMDBItem[]> {
   const data = await fetchFromTMDB<TMDBResponse>('/tv/top_rated');
