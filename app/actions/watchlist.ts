@@ -93,3 +93,26 @@ export async function getUserWatchlist() {
 
   return items;
 }
+
+export async function getUserWatchlistIds(): Promise<number[]> {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return [];
+    }
+
+    const items = await prisma.watchlistItem.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        mediaId: true,
+      },
+    });
+
+    return items.map((item) => item.mediaId);
+  } catch {
+    return [];
+  }
+}

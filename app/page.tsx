@@ -11,7 +11,8 @@ import {
 } from "@/lib/tmdb";
 import { Hero } from "@/components/Hero";
 import { MediaRail } from "@/components/MediaRail";
-import { getUserWatchlist } from "@/app/actions/watchlist";
+
+export const revalidate = 3600; // Cache page on Vercel CDN for 1 hour
 
 const OSCAR_BEST_PICTURE_WINNERS = [
   238, // The Godfather
@@ -54,14 +55,6 @@ export default async function Home() {
     fetchMoviesByGenre([878, 14]),
   ]);
 
-  let initialWatchlistIds: number[] = [];
-  try {
-    const watchlist = await getUserWatchlist();
-    initialWatchlistIds = watchlist.map(item => item.mediaId);
-  } catch {
-    // User is probably not logged in, ignore
-  }
-
   const hasData = heroItems.length > 0 || trendingMovies.length > 0 || trendingTvShows.length > 0;
 
   // TMDb's all-media trending endpoint provides the mixed movie/TV ranking.
@@ -76,14 +69,14 @@ export default async function Home() {
         <>
           {topHeroItems.length > 0 && <Hero items={topHeroItems} />}
           <div className="relative z-20 -mt-px space-y-0 rounded-t-[2rem] bg-gradient-to-b from-[#101010] via-[#0a0a0a] to-[#0a0a0a] pt-3 md:rounded-t-[3rem] md:pt-7">
-            <MediaRail title="Trending Movies" eyebrow="What everyone is watching" items={remainingMovies} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="Trending TV Shows" eyebrow="Binge-worthy now" items={remainingTvShows} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="Award-Winning Films" eyebrow="Oscar Best Picture winners" items={awardWinningFilms} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="Top-Rated Movies" eyebrow="Critically celebrated" items={topRatedMovies} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="Top-Rated TV Shows" eyebrow="The best on television" items={topRatedTvShows} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="New Releases" eyebrow="Fresh on screen" items={newReleases} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="Popular Movies" eyebrow="Audience favorites" items={popularMovies} initialWatchlistIds={initialWatchlistIds} />
-            <MediaRail title="Sci-Fi & Fantasy Spotlight" eyebrow="Escape the ordinary" items={sciFiFantasy} initialWatchlistIds={initialWatchlistIds} />
+            <MediaRail title="Trending Movies" eyebrow="What everyone is watching" items={remainingMovies} />
+            <MediaRail title="Trending TV Shows" eyebrow="Binge-worthy now" items={remainingTvShows} />
+            <MediaRail title="Award-Winning Films" eyebrow="Oscar Best Picture winners" items={awardWinningFilms} />
+            <MediaRail title="Top-Rated Movies" eyebrow="Critically celebrated" items={topRatedMovies} />
+            <MediaRail title="Top-Rated TV Shows" eyebrow="The best on television" items={topRatedTvShows} />
+            <MediaRail title="New Releases" eyebrow="Fresh on screen" items={newReleases} />
+            <MediaRail title="Popular Movies" eyebrow="Audience favorites" items={popularMovies} />
+            <MediaRail title="Sci-Fi & Fantasy Spotlight" eyebrow="Escape the ordinary" items={sciFiFantasy} />
           </div>
         </>
       ) : (

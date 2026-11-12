@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Eye, Star } from "lucide-react";
 import { LogWatchedModal } from "./LogWatchedModal";
 import { useAuth } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { getWatchedCount } from "@/app/actions/watched";
 
 interface WatchedButtonProps {
   mediaId: number;
@@ -15,7 +16,7 @@ interface WatchedButtonProps {
   backdropPath?: string | null;
   releaseDate?: string | null;
   runtime?: number | null;
-  initialWatchCount: number;
+  initialWatchCount?: number;
   initialLastRating?: number | null;
   className?: string;
 }
@@ -28,7 +29,7 @@ export function WatchedButton({
   backdropPath,
   releaseDate,
   runtime,
-  initialWatchCount,
+  initialWatchCount = 0,
   initialLastRating = null,
   className,
 }: WatchedButtonProps) {
@@ -36,6 +37,26 @@ export function WatchedButton({
   const [lastRating, setLastRating] = useState<number | null>(initialLastRating);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    let isSubscribed = true;
+    getWatchedCount(mediaId, mediaType)
+      .then((info) => {
+        if (isSubscribed && info.count > 0) {
+          setWatchCount(info.count);
+          setLastRating(info.lastRating);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load watched count on client:", err);
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [mediaId, mediaType, isSignedIn]);
 
   const handleOpenModal = () => {
     if (!isSignedIn) {

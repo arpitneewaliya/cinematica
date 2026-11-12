@@ -18,7 +18,7 @@ export function PersonCard({ person }: PersonCardProps) {
     .join(", ");
 
   return (
-    <Link href={`/person/${person.id}`} className="block h-full">
+    <Link href={`/person/${person.id}`} prefetch={false} className="block h-full">
       <Card className="group relative h-full overflow-hidden rounded-xl bg-card/50 backdrop-blur-sm border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/20 cursor-pointer flex flex-col">
         <div className="relative aspect-[2/3] w-full overflow-hidden bg-zinc-900">
           {person.profile_path ? (

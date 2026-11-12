@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Plus } from "lucide-react";
-import { addToWatchlist, removeFromWatchlist } from "@/app/actions/watchlist";
 import { useAuth } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { useWatchlist } from "@/components/providers/WatchlistProvider";
 
 interface WatchlistButtonProps {
   mediaId: number;
@@ -14,7 +14,7 @@ interface WatchlistButtonProps {
   posterPath?: string | null;
   backdropPath?: string | null;
   releaseDate?: string | null;
-  initialIsSaved: boolean;
+  initialIsSaved?: boolean;
   className?: string;
 }
 
@@ -25,12 +25,14 @@ export function WatchlistButton({
   posterPath,
   backdropPath,
   releaseDate,
-  initialIsSaved,
+  initialIsSaved = false,
   className,
 }: WatchlistButtonProps) {
-  const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [isPending, startTransition] = useTransition();
   const { isSignedIn } = useAuth();
+  const { isSaved: checkIsSaved, toggleWatchlist } = useWatchlist();
+
+  const isSaved = initialIsSaved || checkIsSaved(mediaId);
 
   const handleToggle = () => {
     if (!isSignedIn) {
@@ -39,28 +41,14 @@ export function WatchlistButton({
     }
 
     startTransition(async () => {
-      // Optimistic update
-      const newSavedState = !isSaved;
-      setIsSaved(newSavedState);
-
-      if (newSavedState) {
-        const res = await addToWatchlist({
-          mediaId,
-          mediaType,
-          title,
-          posterPath,
-          backdropPath,
-          releaseDate,
-        });
-        if (!res.success) {
-          setIsSaved(!newSavedState); // Revert on failure
-        }
-      } else {
-        const res = await removeFromWatchlist(mediaId, mediaType);
-        if (!res.success) {
-          setIsSaved(!newSavedState); // Revert on failure
-        }
-      }
+      await toggleWatchlist({
+        mediaId,
+        mediaType,
+        title,
+        posterPath,
+        backdropPath,
+        releaseDate,
+      });
     });
   };
 
