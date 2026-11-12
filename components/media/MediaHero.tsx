@@ -6,7 +6,6 @@ import { getImageUrl } from "@/lib/tmdb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCountry } from "@/components/providers/CountryProvider";
-import { getWatchProvidersAction } from "@/app/actions/media";
 import { WatchlistButton } from "./WatchlistButton";
 import { WatchedButton } from "./WatchedButton";
 import { AddToCustomListButton } from "./AddToCustomListButton";
@@ -27,7 +26,7 @@ interface MediaHeroProps {
   runtime?: number | null;
   genres: { id: number; name: string }[];
   videos: Video[];
-  isSaved: boolean;
+  isSaved?: boolean;
   initialWatchCount?: number;
   initialLastRating?: number | null;
 }
@@ -44,7 +43,7 @@ export function MediaHero({
   runtime,
   genres,
   videos,
-  isSaved,
+  isSaved = false,
   initialWatchCount = 0,
   initialLastRating = null,
 }: MediaHeroProps) {
@@ -110,8 +109,11 @@ export function MediaHero({
     const fetchProviders = async () => {
       setLoadingProviders(true);
       try {
-        const data = await getWatchProvidersAction(id, type, country);
-        setProviders(data);
+        const res = await fetch(`/api/watch-providers?id=${id}&type=${type}&country=${encodeURIComponent(country)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProviders(data);
+        }
       } catch (err) {
         console.error("Failed to fetch watch providers:", err);
       } finally {

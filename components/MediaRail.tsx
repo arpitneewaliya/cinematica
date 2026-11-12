@@ -24,29 +24,13 @@ interface MediaRailProps {
 export function MediaRail({
   title,
   items,
-  initialWatchlistIds = [],
   eyebrow = "Discover",
   className,
 }: MediaRailProps) {
-  const [watchlistSet, setWatchlistSet] = useState<Set<number>>(
-    () => new Set(initialWatchlistIds)
-  );
   const [api, setApi] = useState<CarouselApi>();
   const displayItems = items.filter((item) => item.poster_path).slice(0, 10);
 
   if (displayItems.length === 0) return null;
-
-  const handleToggleWatchlist = (id: number) => {
-    setWatchlistSet((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   return (
     <section className={cn("content-visibility-auto py-5 md:py-7", className)} aria-labelledby={`${title}-heading`}>
@@ -75,11 +59,7 @@ export function MediaRail({
                 key={`${item.media_type}-${item.id}`}
                 className="basis-[72%] pl-2.5 min-[480px]:basis-[46%] sm:basis-[31%] md:basis-1/4 md:pl-3"
               >
-                <MediaCard
-                  item={item}
-                  isSaved={watchlistSet.has(item.id)}
-                  onToggleWatchlist={handleToggleWatchlist}
-                />
+                <MediaCard item={item} />
               </CarouselItem>
             ))}
           </CarouselContent>

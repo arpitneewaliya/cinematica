@@ -13,6 +13,8 @@ import { PersonKnownFor } from "@/components/person/PersonKnownFor";
 import { PersonPhotos } from "@/components/person/PersonPhotos";
 import { PersonFilmography } from "@/components/person/PersonFilmography";
 
+export const revalidate = 86400; // Cache person profiles for 24 hours
+
 interface Props {
   params: Promise<{
     id: string;

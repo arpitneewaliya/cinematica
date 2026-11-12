@@ -1,25 +1,49 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { TMDBItem, getImageUrl } from "@/lib/tmdb";
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MiniWatchlistButton } from "./media/MiniWatchlistButton";
 import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
+import { useWatchlist } from "@/components/providers/WatchlistProvider";
 
 interface MediaCardProps {
   item: TMDBItem;
   isSaved?: boolean;
   onToggleWatchlist?: (id: number) => void;
+  showWatchlistButton?: boolean;
 }
 
-export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCardProps) {
+export function MediaCard({
+  item,
+  isSaved: propIsSaved,
+  onToggleWatchlist,
+  showWatchlistButton = true,
+}: MediaCardProps) {
+  const router = useRouter();
+  const { isSaved: checkIsSaved } = useWatchlist();
+  const isSaved = propIsSaved !== undefined ? propIsSaved : checkIsSaved(item.id);
+
   const title = item.title || item.name;
   const releaseDate = item.release_date || item.first_air_date;
   const { year, isUpcoming } = getMediaReleaseInfo(releaseDate);
+  const href = `/${item.media_type}/${item.id}`;
+
+  const handlePrefetch = () => {
+    router.prefetch(href);
+  };
 
   return (
-    <Link href={`/${item.media_type}/${item.id}`}>
+    <Link
+      href={href}
+      prefetch={false}
+      onMouseEnter={handlePrefetch}
+      onFocus={handlePrefetch}
+    >
       <Card className="group relative overflow-hidden rounded-xl bg-card/50 backdrop-blur-sm border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/20 cursor-pointer">
         <div className="relative aspect-[2/3] w-full overflow-hidden">
           <Image
@@ -31,7 +55,7 @@ export function MediaCard({ item, isSaved = false, onToggleWatchlist }: MediaCar
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80" />
           
-          {onToggleWatchlist && (
+          {showWatchlistButton && (
             <MiniWatchlistButton 
               item={item} 
               isSaved={isSaved} 

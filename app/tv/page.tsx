@@ -1,6 +1,7 @@
 import { fetchMediaChunkData } from "@/lib/tmdb";
 import { MediaListTabs } from "@/components/MediaListTabs";
-import { getUserWatchlist } from "@/app/actions/watchlist";
+
+export const revalidate = 3600; // Cache page on Vercel CDN for 1 hour
 
 export const metadata = {
   title: "TV Shows - Cinematica",
@@ -13,14 +14,6 @@ export default async function TvShowsPage() {
     fetchMediaChunkData("tv", "top_rated", 1),
   ]);
 
-  let initialWatchlistIds: number[] = [];
-  try {
-    const watchlist = await getUserWatchlist();
-    initialWatchlistIds = watchlist.map(item => item.mediaId);
-  } catch (error) {
-    // User is probably not logged in, ignore
-  }
-
   return (
     <main className="min-h-screen bg-background">
       <MediaListTabs 
@@ -28,7 +21,6 @@ export default async function TvShowsPage() {
         mediaType="tv"
         popular={popular} 
         topRated={topRated}
-        initialWatchlistIds={initialWatchlistIds}
       />
     </main>
   );

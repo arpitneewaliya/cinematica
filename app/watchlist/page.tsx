@@ -44,7 +44,7 @@ export default async function WatchlistPage() {
             {items.map((item) => {
               const { year, isUpcoming } = getMediaReleaseInfo(item.releaseDate);
               return (
-                <Link key={item.id} href={`/${item.mediaType}/${item.mediaId}`}>
+                <Link key={item.id} href={`/${item.mediaType}/${item.mediaId}`} prefetch={false}>
                   <Card className="group relative overflow-hidden rounded-xl bg-card/50 backdrop-blur-sm border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/20">
                     <div className="relative aspect-[2/3] w-full overflow-hidden bg-white/5">
                       {item.posterPath && (

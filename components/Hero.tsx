@@ -16,7 +16,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getMediaTrailerAction, getWatchProvidersAction } from "@/app/actions/media";
+import { getMediaTrailerAction } from "@/app/actions/media";
 import { Video } from "@/types/tmdb";
 import { useCountry } from "@/components/providers/CountryProvider";
 import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
@@ -99,9 +99,12 @@ export function Hero({ items }: HeroProps) {
       const results: Record<string, CountryWatchProviders> = {};
       try {
         const promises = items.map(async (item) => {
-          const data = await getWatchProvidersAction(item.id, item.media_type, country);
-          if (data) {
-            results[`${item.media_type}:${item.id}`] = data;
+          const res = await fetch(`/api/watch-providers?id=${item.id}&type=${item.media_type}&country=${encodeURIComponent(country)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data) {
+              results[`${item.media_type}:${item.id}`] = data;
+            }
           }
         });
         await Promise.all(promises);

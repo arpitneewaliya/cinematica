@@ -2,13 +2,13 @@ import { getTVDetails, getTVCredits, getTVVideos, getTVRecommendations } from "@
 import { MediaHero } from "@/components/media/MediaHero";
 import { CastRow } from "@/components/media/CastRow";
 import { MediaRow } from "@/components/MediaRow";
-import { isInWatchlist } from "@/app/actions/watchlist";
-import { getWatchedCount } from "@/app/actions/watched";
+
+export const revalidate = 86400; // Cache on Vercel CDN for 24 hours
 
 interface Props {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -23,13 +23,11 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function TVShowPage({ params }: Props) {
   const { id } = await params;
-  const [details, credits, videos, recommendations, isSaved, watchInfo] = await Promise.all([
+  const [details, credits, videos, recommendations] = await Promise.all([
     getTVDetails(id),
     getTVCredits(id),
     getTVVideos(id),
     getTVRecommendations(id),
-    isInWatchlist(Number(id), "tv"),
-    getWatchedCount(Number(id), "tv"),
   ]);
 
   if (!details) {
@@ -53,9 +51,6 @@ export default async function TVShowPage({ params }: Props) {
         releaseDate={details.first_air_date}
         genres={details.genres}
         videos={videos?.results || []}
-        isSaved={isSaved}
-        initialWatchCount={watchInfo.count}
-        initialLastRating={watchInfo.lastRating}
       />
       
       {credits && <CastRow cast={credits.cast} />}

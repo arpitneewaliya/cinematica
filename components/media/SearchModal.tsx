@@ -19,7 +19,7 @@ import {
   CornerDownLeft,
 } from "lucide-react";
 import { TMDBItem, getImageUrl } from "@/lib/tmdb";
-import { searchMediaAction, getTrendingMediaAction } from "@/app/actions/media";
+import { getTrendingMediaAction } from "@/app/actions/media";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
@@ -151,7 +151,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const searchResults = await searchMediaAction(query);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const searchResults: TMDBItem[] = res.ok ? await res.json() : [];
         // Show up to 12 items to give rich, ample results
         setResults(searchResults.slice(0, 12));
       } catch (err) {
@@ -160,7 +161,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         setIsLoading(false);
         setActiveIndex(-1);
       }
-    }, 280);
+    }, 350);
 
     return () => clearTimeout(delayDebounceFn);
   }, [query]);

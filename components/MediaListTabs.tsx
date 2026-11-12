@@ -64,7 +64,7 @@ interface MediaListTabsProps {
   initialWatchlistIds?: number[];
 }
 
-export function MediaListTabs({ title, mediaType, popular, topRated, initialWatchlistIds = [] }: MediaListTabsProps) {
+export function MediaListTabs({ title, mediaType, popular, topRated }: MediaListTabsProps) {
   const [activeTab, setActiveTab] = useState<"popular" | "topRated">("popular");
   
   const [popularItems, setPopularItems] = useState<TMDBItem[]>(popular);
@@ -74,7 +74,6 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
   const [topRatedChunk, setTopRatedChunk] = useState(1);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [watchlistSet, setWatchlistSet] = useState<Set<number>>(new Set(initialWatchlistIds));
 
   // Filter UI and configuration state
   const [showFilters, setShowFilters] = useState(false);
@@ -173,18 +172,6 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
       setFilteredPage(1);
       setHasMoreFiltered(true);
     }
-  };
-
-  const handleToggleWatchlist = (id: number) => {
-    setWatchlistSet(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
   };
 
   const handleLoadMore = async () => {
@@ -500,11 +487,7 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
                     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
                   }}
                 >
-                  <MediaCard 
-                    item={item} 
-                    isSaved={watchlistSet.has(item.id)}
-                    onToggleWatchlist={handleToggleWatchlist}
-                  />
+                  <MediaCard item={item} />
                 </motion.div>
               ))}
             </motion.div>
@@ -534,11 +517,7 @@ export function MediaListTabs({ title, mediaType, popular, topRated, initialWatc
                     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
                   }}
                 >
-                  <MediaCard 
-                    item={item} 
-                    isSaved={watchlistSet.has(item.id)}
-                    onToggleWatchlist={handleToggleWatchlist}
-                  />
+                  <MediaCard item={item} />
                 </motion.div>
               ))}
             </motion.div>

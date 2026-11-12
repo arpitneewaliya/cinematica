@@ -262,6 +262,7 @@ export function HistoryFeed({ initialItems, stats }: HistoryFeedProps) {
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <Link 
                           href={`/${item.mediaType}/${item.mediaId}`}
+                          prefetch={false}
                           className="font-heading font-bold text-white text-base md:text-lg hover:text-primary hover:underline transition-all tracking-tight truncate pr-4"
                         >
                           {item.title}

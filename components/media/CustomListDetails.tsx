@@ -140,7 +140,7 @@ export function CustomListDetails({ list }: CustomListDetailsProps) {
                   <Trash2 className="w-4 h-4" />
                 </button>
 
-                <Link href={`/${item.mediaType}/${item.mediaId}`}>
+                <Link href={`/${item.mediaType}/${item.mediaId}`} prefetch={false}>
                   <Card className="group relative overflow-hidden rounded-xl bg-card/50 border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/10 cursor-pointer h-full">
                     <div className="relative aspect-[2/3] w-full overflow-hidden bg-white/5">
                       {item.posterPath ? (
