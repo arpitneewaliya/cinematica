@@ -22,7 +22,18 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000");
+
+const ogImageUrl = "/og-image.png?v=2";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Cinematica - Movie & TV Tracker",
   description: "Track the movies and TV shows you have watched, rate them, write review notes, and organize them in custom lists.",
   openGraph: {
@@ -30,9 +41,9 @@ export const metadata: Metadata = {
     description: "Track the movies and TV shows you have watched, rate them, write review notes, and organize them in custom lists.",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
+        url: ogImageUrl,
+        width: 1672,
+        height: 941,
         alt: "Cinematica Social Share Preview",
       },
     ],
@@ -42,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Cinematica - Movie & TV Tracker",
     description: "Track the movies and TV shows you have watched, rate them, write review notes, and organize them in custom lists.",
-    images: ["/og-image.png"],
+    images: [ogImageUrl],
   },
 };
 
