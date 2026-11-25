@@ -143,6 +143,29 @@ export async function getMediaWatchEntries(
   }
 }
 
+export async function getUserWatchedIds(
+  mediaType?: "movie" | "tv"
+): Promise<number[]> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const rows = await prisma.watchedItem.findMany({
+      where: {
+        userId,
+        ...(mediaType ? { mediaType } : {}),
+      },
+      select: { mediaId: true },
+      distinct: ["mediaId"],
+    });
+
+    return rows.map((row) => row.mediaId);
+  } catch (error) {
+    console.error("Failed to fetch user watched IDs:", error);
+    return [];
+  }
+}
+
 export async function getWatchedCount(mediaId: number, mediaType: "movie" | "tv") {
   const { userId } = await auth();
 

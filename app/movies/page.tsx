@@ -1,29 +1,27 @@
 import { Suspense } from "react";
-import { fetchMediaChunkData } from "@/lib/tmdb";
-import { MediaListTabs } from "@/components/MediaListTabs";
+import { fetchExploreCategoryPage, fetchExploreSpotlight } from "@/lib/tmdb";
+import { ExploreSpotlight } from "@/components/explore/ExploreSpotlight";
+import { ExploreCatalog } from "@/components/explore/ExploreCatalog";
 
 export const revalidate = 3600; // Cache page on Vercel CDN for 1 hour
 
 export const metadata = {
-  title: "Movies - Cinematica",
-  description: "Browse popular and top rated movies.",
+  title: "Movies — Cinematica",
+  description:
+    "Discover trending, in-theater, upcoming, and top-rated films with streaming availability and advanced filters.",
 };
 
 export default async function MoviesPage() {
-  const [popular, topRated] = await Promise.all([
-    fetchMediaChunkData("movie", "popular", 1),
-    fetchMediaChunkData("movie", "top_rated", 1),
+  const [spotlightItems, initialCatalog] = await Promise.all([
+    fetchExploreSpotlight("movie", 5),
+    fetchExploreCategoryPage("movie", "trending", 1),
   ]);
 
   return (
-    <main className="min-h-screen bg-background">
-      <Suspense fallback={<div className="min-h-screen bg-background" />}>
-        <MediaListTabs
-          title="Movies"
-          mediaType="movie"
-          popular={popular}
-          topRated={topRated}
-        />
+    <main className="min-h-screen overflow-x-clip bg-[#070708] pb-16">
+      <ExploreSpotlight items={spotlightItems} mediaType="movie" />
+      <Suspense fallback={<div className="min-h-[60vh] bg-[#070708]" />}>
+        <ExploreCatalog mediaType="movie" initialData={initialCatalog} />
       </Suspense>
     </main>
   );

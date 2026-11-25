@@ -46,7 +46,11 @@ export function Navbar() {
 
   const isHome = pathname === "/";
   const hasFullBleedHero =
-    isHome || pathname.startsWith("/movie/") || pathname.startsWith("/tv/");
+    isHome ||
+    pathname === "/movies" ||
+    pathname === "/tv" ||
+    pathname.startsWith("/movie/") ||
+    pathname.startsWith("/tv/");
   const isMoviesRoute = pathname.startsWith("/movies") || pathname.startsWith("/movie/");
   const isTvRoute = pathname.startsWith("/tv");
   const isLibraryRoute =

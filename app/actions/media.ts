@@ -1,7 +1,72 @@
 "use server";
 
-import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, fetchTrendingMedia, getMovieVideos, getTVVideos, getMediaWatchProviders, getTVSeasonDetails, CountryWatchProviders } from "@/lib/tmdb";
+import {
+  TMDBItem,
+  PaginatedMediaResponse,
+  WatchProvider,
+  fetchMediaChunkData,
+  discoverMedia,
+  fetchExploreCategoryPage,
+  discoverMediaAdvanced,
+  fetchAvailableWatchProviders,
+  searchMedia,
+  fetchTrendingMedia,
+  getMovieVideos,
+  getTVVideos,
+  getMediaWatchProviders,
+  getTVSeasonDetails,
+  CountryWatchProviders,
+} from "@/lib/tmdb";
+import {
+  DiscoverFilters,
+  DiscoverSortOption,
+  ExploreCategory,
+  ExploreMediaType,
+} from "@/lib/explore-config";
 import { Video, TVSeasonDetails } from "@/types/tmdb";
+
+export async function fetchExploreCategoryAction(
+  mediaType: ExploreMediaType,
+  category: ExploreCategory,
+  page: number = 1
+): Promise<PaginatedMediaResponse> {
+  try {
+    return await fetchExploreCategoryPage(mediaType, category, page);
+  } catch (error) {
+    console.error("Error fetching explore category:", error);
+    return { items: [], page: 1, totalPages: 1, totalResults: 0 };
+  }
+}
+
+export async function discoverMediaAction(
+  mediaType: ExploreMediaType,
+  params: {
+    category: ExploreCategory;
+    sortBy: DiscoverSortOption;
+    page: number;
+    filters: DiscoverFilters;
+    watchRegion?: string;
+  }
+): Promise<PaginatedMediaResponse> {
+  try {
+    return await discoverMediaAdvanced(mediaType, params);
+  } catch (error) {
+    console.error("Error running advanced media discovery:", error);
+    return { items: [], page: 1, totalPages: 1, totalResults: 0 };
+  }
+}
+
+export async function getRegionWatchProvidersAction(
+  mediaType: ExploreMediaType,
+  region: string = "US"
+): Promise<WatchProvider[]> {
+  try {
+    return await fetchAvailableWatchProviders(mediaType, region);
+  } catch (error) {
+    console.error("Error fetching regional watch providers:", error);
+    return [];
+  }
+}
 
 export async function fetchMediaChunk(
   mediaType: "movie" | "tv",

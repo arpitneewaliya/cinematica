@@ -57,7 +57,12 @@ Cinematica is a modern, responsive web application for discovering trending, pop
   - `GenrePillBar.tsx`: Quick category & genre deep-link filter bar below the Hero.
   - `MediaCard.tsx`: Unobstructed `2:3` poster card with caption underneath.
   - `MediaRail.tsx`, `TopTenRail.tsx`, `BackdropRail.tsx`, `WatchlistRail.tsx`, & `MediaRow.tsx`: Editorial 6-up portrait rails, numbered Top 10 showcase, `16:9` widescreen spotlight rails, personalized watchlist strip, and grid rows.
-  - `MediaListTabs.tsx`: Tabbed filters for movies & TV shows supporting URL query deep-linking (`?tab=`, `?genre=`).
+  - `explore/`: Explore catalog components for `/movies` and `/tv`:
+    - `ExploreSpotlight.tsx`: Compact `48svh` atmospheric spotlight with official logos, trailer modal, and watchlist action.
+    - `ExploreCommandBar.tsx`: Sticky frosted-glass category tabs, sort selector, view mode switcher, quick-genre strip, and removable active filter chips.
+    - `ExploreFilterDrawer.tsx`: Slide-over glass filter studio with region-aware streaming services, genre AND/OR mode, era/year range, rating/vote count, runtime, language, movie certifications, TV status/networks, and personal library toggles.
+    - `ExploreEditorialCard.tsx`: Detailed editorial card view with synopsis, genres, and watched state.
+    - `ExploreCatalog.tsx` & `ExploreSkeleton.tsx`: URL-synced catalog orchestrator with infinite scroll and instant loading skeleton.
 - `lib/`: Utility configuration code.
   - `tmdb.ts`: Data fetching functions from TMDb API.
   - `prisma.ts`: PrismaClient singleton pattern.
