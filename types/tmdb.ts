@@ -276,26 +276,39 @@ export interface PersonCreditCastItem {
   vote_count: number;
   popularity: number;
   overview: string;
+  genre_ids?: number[];
+  order?: number;
+  episode_count?: number;
+}
+
+export interface PersonCreditCrewItem {
+  id: number;
+  title?: string;
+  name?: string;
+  department?: string;
+  job?: string;
+  media_type: "movie" | "tv";
+  release_date?: string;
+  first_air_date?: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  overview?: string;
+  genre_ids?: number[];
   episode_count?: number;
 }
 
 export interface PersonCreditsResponse {
   cast: PersonCreditCastItem[];
-  crew: Array<{
-    id: number;
-    title?: string;
-    name?: string;
-    department?: string;
-    job?: string;
-    media_type: "movie" | "tv";
-    release_date?: string;
-    first_air_date?: string;
-    poster_path: string | null;
-    backdrop_path: string | null;
-    vote_average: number;
-    vote_count: number;
-    popularity: number;
-  }>;
+  crew: PersonCreditCrewItem[];
+}
+
+export interface FullPersonDetails extends PersonDetails {
+  combined_credits?: PersonCreditsResponse;
+  external_ids?: PersonExternalIds;
+  images?: PersonImagesResponse;
 }
 
 export interface PersonSearchResult {

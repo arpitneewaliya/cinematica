@@ -50,7 +50,8 @@ export function Navbar() {
     pathname === "/movies" ||
     pathname === "/tv" ||
     pathname.startsWith("/movie/") ||
-    pathname.startsWith("/tv/");
+    pathname.startsWith("/tv/") ||
+    pathname.startsWith("/person/");
   const isMoviesRoute = pathname.startsWith("/movies") || pathname.startsWith("/movie/");
   const isTvRoute = pathname.startsWith("/tv");
   const isLibraryRoute =

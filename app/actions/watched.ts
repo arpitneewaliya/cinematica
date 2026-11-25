@@ -143,6 +143,46 @@ export async function getMediaWatchEntries(
   }
 }
 
+export interface WatchedMediaSummaryItem {
+  mediaId: number;
+  mediaType: "movie" | "tv";
+  rating: number | null;
+}
+
+export async function getUserWatchedMediaSummary(): Promise<WatchedMediaSummaryItem[]> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const rows = await prisma.watchedItem.findMany({
+      where: { userId },
+      orderBy: { watchedAt: "desc" },
+      select: {
+        mediaId: true,
+        mediaType: true,
+        rating: true,
+      },
+    });
+
+    const seen = new Set<string>();
+    const summary: WatchedMediaSummaryItem[] = [];
+    for (const row of rows) {
+      const key = `${row.mediaType}:${row.mediaId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      summary.push({
+        mediaId: row.mediaId,
+        mediaType: row.mediaType,
+        rating: row.rating,
+      });
+    }
+    return summary;
+  } catch (error) {
+    console.error("Failed to fetch watched media summary:", error);
+    return [];
+  }
+}
+
 export async function getUserWatchedIds(
   mediaType?: "movie" | "tv"
 ): Promise<number[]> {

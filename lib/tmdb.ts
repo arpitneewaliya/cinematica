@@ -201,8 +201,22 @@ import {
   PersonCreditsResponse,
   PersonSearchResult,
   PersonImagesResponse,
+  FullPersonDetails,
   AggregateCreditsResponse,
 } from "@/types/tmdb";
+
+export async function getFullPersonDetails(
+  id: string | number
+): Promise<FullPersonDetails | null> {
+  try {
+    const data = await fetchFromTMDB<FullPersonDetails>(
+      `/person/${id}?append_to_response=combined_credits,external_ids,images`
+    );
+    return data && typeof data.id === "number" ? data : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function getPersonDetails(id: string | number): Promise<PersonDetails | null> {
   return fetchFromTMDB<PersonDetails>(`/person/${id}`).catch(() => null);

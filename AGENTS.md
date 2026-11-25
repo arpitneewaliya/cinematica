@@ -26,6 +26,7 @@ Cinematica is a modern, responsive web application for discovering trending, pop
   - `watched/page.tsx`: Protected page displaying watched history feed and analytics stats (charts, runtime, rating breakdowns).
   - `lists/page.tsx`: Protected page showing user's custom lists and list creation form.
   - `lists/[id]/page.tsx`: Page displaying specific custom list items and list options.
+  - `person/[id]/page.tsx`: Editorial person profile with signature-backdrop hero, Career DNA analytics, personal progress tracker, and interactive filmography.
   - `search/page.tsx`: Full search result list page.
   - `actions/`: Next.js Server Actions for database mutations:
     - `watchlist.ts`: Manage watchlists.
@@ -63,6 +64,12 @@ Cinematica is a modern, responsive web application for discovering trending, pop
     - `ExploreFilterDrawer.tsx`: Slide-over glass filter studio with region-aware streaming services, genre AND/OR mode, era/year range, rating/vote count, runtime, language, movie certifications, TV status/networks, and personal library toggles.
     - `ExploreEditorialCard.tsx`: Detailed editorial card view with synopsis, genres, and watched state.
     - `ExploreCatalog.tsx` & `ExploreSkeleton.tsx`: URL-synced catalog orchestrator with infinite scroll and instant loading skeleton.
+  - `person/`: Person profile & search talent components:
+    - `PersonHero.tsx`: Full-bleed signature-backdrop stage with portrait, crafts, vital metadata, monochrome socials, and expandable biography.
+    - `PersonKnownFor.tsx`: 6-up Embla carousel showcasing standout cast & crew works with role captions.
+    - `PersonBentoGrid.tsx` & `PersonInteractiveBody.tsx`: Personal completion tracker, interactive Career DNA (genres & decade breakdown), and Personal Dossier.
+    - `PersonFilmography.tsx`: Decade-grouped timeline and 6-up poster grid explorer with department tabs, search, sort, and Self/Talk Show filtering.
+    - `PersonPhotos.tsx`, `PersonDetailSkeleton.tsx`, & `PersonCard.tsx`: Portrait lightbox carousel, route loading skeleton, and search talent card.
 - `lib/`: Utility configuration code.
   - `tmdb.ts`: Data fetching functions from TMDb API.
   - `prisma.ts`: PrismaClient singleton pattern.

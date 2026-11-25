@@ -1,109 +1,131 @@
 "use client";
 
 import * as React from "react";
-import { TMDBItem } from "@/lib/tmdb";
-import { MediaCard } from "@/components/MediaCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { TMDBItem } from "@/lib/tmdb";
+import { NormalizedPersonCredit } from "@/lib/person-credits";
+import { MediaCard } from "@/components/MediaCard";
+import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 interface PersonKnownForProps {
-  items: TMDBItem[];
+  credits: NormalizedPersonCredit[];
 }
 
-export function PersonKnownFor({ items }: PersonKnownForProps) {
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = React.useState(false);
-  const [showRightArrow, setShowRightArrow] = React.useState(false);
+export function PersonKnownFor({ credits }: PersonKnownForProps) {
+  const [api, setApi] = React.useState<CarouselApi>();
 
-  const checkScroll = React.useCallback(() => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      setShowLeftArrow(scrollLeft > 10);
-      setShowRightArrow(scrollWidth > clientWidth && scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  }, []);
+  const displayCredits = React.useMemo(
+    () => credits.filter((c) => Boolean(c.posterPath)).slice(0, 18),
+    [credits]
+  );
 
-  React.useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", checkScroll, { passive: true });
-      const timeoutId = setTimeout(checkScroll, 100);
-
-      const resizeObserver = new ResizeObserver(() => {
-        checkScroll();
-      });
-      resizeObserver.observe(container);
-
-      return () => {
-        container.removeEventListener("scroll", checkScroll);
-        resizeObserver.disconnect();
-        clearTimeout(timeoutId);
-      };
-    }
-  }, [items, checkScroll]);
-
-  if (!items || items.length === 0) return null;
-
-  const handleScroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const { clientWidth } = scrollContainerRef.current;
-      const scrollAmount = direction === "left" ? -clientWidth * 0.75 : clientWidth * 0.75;
-      scrollContainerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
+  if (displayCredits.length === 0) return null;
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-heading text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-primary rounded-full inline-block"></span>
-          Known For
-        </h2>
-      </div>
-
-      <div className="relative group/known-arrows">
-        {/* Left Arrow Button */}
-        <button
-          onClick={() => handleScroll("left")}
-          className={cn(
-            "absolute left-0 top-[45%] -translate-y-1/2 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-black/75 border border-white/10 text-white backdrop-blur-md hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 cursor-pointer shadow-xl -translate-x-3 opacity-0 group-hover/known-arrows:opacity-100 disabled:opacity-0 disabled:pointer-events-none"
-          )}
-          disabled={!showLeftArrow}
-          aria-label="Scroll left"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
-        {/* Right Arrow Button */}
-        <button
-          onClick={() => handleScroll("right")}
-          className={cn(
-            "absolute right-0 top-[45%] -translate-y-1/2 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-black/75 border border-white/10 text-white backdrop-blur-md hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 cursor-pointer shadow-xl translate-x-3 opacity-0 group-hover/known-arrows:opacity-100 disabled:opacity-0 disabled:pointer-events-none"
-          )}
-          disabled={!showRightArrow}
-          aria-label="Scroll right"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-
-        <div
-          ref={scrollContainerRef}
-          className="flex overflow-x-auto gap-3.5 md:gap-4 pb-4 snap-x hide-scrollbar scroll-smooth"
-        >
-          {items.map((item) => (
-            <div
-              key={`${item.media_type}-${item.id}`}
-              className="snap-start shrink-0 w-36 sm:w-44 md:w-48"
+    <section
+      aria-labelledby="known-for-heading"
+      className="content-visibility-auto py-6 md:py-8"
+    >
+      <div className="container mx-auto px-4 sm:px-6 md:px-10">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div className="space-y-0.5">
+            <p className="font-heading text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              Signature Works
+            </p>
+            <h2
+              id="known-for-heading"
+              className="font-heading text-lg font-bold tracking-tight text-white sm:text-xl md:text-2xl"
             >
-              <MediaCard item={item} />
-            </div>
-          ))}
+              Known For
+            </h2>
+          </div>
+          <span className="hidden text-xs font-medium text-zinc-500 sm:inline tabular-nums">
+            {displayCredits.length} standout{" "}
+            {displayCredits.length === 1 ? "title" : "titles"}
+          </span>
         </div>
+
+        <Carousel
+          setApi={setApi}
+          opts={{
+            align: "start",
+            loop: displayCredits.length > 6,
+            slidesToScroll: 3,
+          }}
+          className="group/rail"
+        >
+          <CarouselContent
+            viewportClassName="py-3 -my-3 px-1 -mx-1"
+            className="-ml-3 md:-ml-4"
+          >
+            {displayCredits.map((credit) => {
+              const mediaItem: TMDBItem = {
+                id: credit.id,
+                title: credit.mediaType === "movie" ? credit.title : undefined,
+                name: credit.mediaType === "tv" ? credit.title : undefined,
+                overview: credit.overview,
+                poster_path: credit.posterPath || "",
+                backdrop_path: credit.backdropPath || "",
+                release_date:
+                  credit.mediaType === "movie" ? credit.releaseDate : undefined,
+                first_air_date:
+                  credit.mediaType === "tv" ? credit.releaseDate : undefined,
+                vote_average: credit.voteAverage,
+                media_type: credit.mediaType,
+                genre_ids: credit.genreIds,
+              };
+
+              return (
+                <CarouselItem
+                  key={credit.key}
+                  className="basis-[44%] pl-3 min-[520px]:basis-[32%] md:basis-[24.5%] md:pl-4 lg:basis-[19.5%] xl:basis-[16.666%]"
+                >
+                  <div className="space-y-1">
+                    <MediaCard item={mediaItem} />
+                    {credit.primaryRoleLabel && (
+                      <p
+                        title={credit.primaryRoleLabel}
+                        className="truncate px-0.5 text-[11px] font-medium text-zinc-400"
+                      >
+                        {credit.primaryRoleLabel}
+                      </p>
+                    )}
+                  </div>
+                </CarouselItem>
+              );
+            })}
+          </CarouselContent>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={!api}
+            onClick={() => api?.scrollPrev()}
+            aria-label="Previous known for titles"
+            className="absolute left-1 top-[36%] z-10 hidden sm:flex size-9 rounded-full border-white/15 bg-zinc-950/85 text-white opacity-0 shadow-2xl backdrop-blur-xl transition-all hover:bg-white hover:text-black group-hover/rail:opacity-100 focus-visible:opacity-100 md:-left-3 cursor-pointer"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={!api}
+            onClick={() => api?.scrollNext()}
+            aria-label="Next known for titles"
+            className="absolute right-1 top-[36%] z-10 hidden sm:flex size-9 rounded-full border-white/15 bg-zinc-950/85 text-white opacity-0 shadow-2xl backdrop-blur-xl transition-all hover:bg-white hover:text-black group-hover/rail:opacity-100 focus-visible:opacity-100 md:-right-3 cursor-pointer"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </Carousel>
       </div>
     </section>
   );
 }
-
