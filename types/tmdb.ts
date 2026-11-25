@@ -1,3 +1,87 @@
+export interface TMDBRelatedItem {
+  id: number;
+  title?: string;
+  name?: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average: number;
+  genre_ids?: number[];
+}
+
+export interface CrewMember {
+  id: number;
+  name: string;
+  job: string;
+  department: string;
+  profile_path: string | null;
+}
+
+export interface TMDBImageAssetDetail {
+  file_path: string;
+  aspect_ratio: number;
+  width: number;
+  height: number;
+  iso_639_1: string | null;
+  vote_average: number;
+  vote_count: number;
+}
+
+export interface TMDBReview {
+  id: string;
+  author: string;
+  author_details: {
+    name?: string;
+    username: string;
+    avatar_path: string | null;
+    rating: number | null;
+  };
+  content: string;
+  created_at: string;
+  url?: string;
+}
+
+export interface TVSeasonSummary {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  episode_count: number;
+  air_date: string | null;
+  vote_average?: number;
+}
+
+export interface TVEpisode {
+  id: number;
+  name: string;
+  overview: string;
+  episode_number: number;
+  season_number: number;
+  air_date: string | null;
+  runtime: number | null;
+  still_path: string | null;
+  vote_average: number;
+}
+
+export interface TVSeasonDetails {
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  air_date: string | null;
+  episodes: TVEpisode[];
+}
+
+export interface SpokenLanguage {
+  english_name: string;
+  iso_639_1: string;
+  name: string;
+}
+
 export interface MovieDetails {
   id: number;
   title: string;
@@ -6,11 +90,41 @@ export interface MovieDetails {
   backdrop_path: string | null;
   release_date: string;
   vote_average: number;
+  vote_count?: number;
   runtime: number | null;
   budget: number;
   revenue: number;
   genres: Genre[];
   production_companies: ProductionCompany[];
+  tagline?: string;
+  status?: string;
+  original_language?: string;
+  homepage?: string | null;
+  spoken_languages?: SpokenLanguage[];
+  credits?: CreditsResponse;
+  videos?: VideosResponse;
+  images?: {
+    backdrops?: TMDBImageAssetDetail[];
+    logos?: TMDBImageAssetDetail[];
+  };
+  recommendations?: {
+    results: TMDBRelatedItem[];
+  };
+  similar?: {
+    results: TMDBRelatedItem[];
+  };
+  release_dates?: {
+    results: Array<{
+      iso_3166_1: string;
+      release_dates: Array<{
+        certification: string;
+        type: number;
+      }>;
+    }>;
+  };
+  reviews?: {
+    results: TMDBReview[];
+  };
 }
 
 export interface TVDetails {
@@ -20,12 +134,48 @@ export interface TVDetails {
   poster_path: string | null;
   backdrop_path: string | null;
   first_air_date: string;
+  last_air_date?: string | null;
   vote_average: number;
+  vote_count?: number;
   number_of_episodes: number;
   number_of_seasons: number;
+  episode_run_time?: number[];
+  in_production?: boolean;
   status: string;
   networks: Network[];
   genres: Genre[];
+  tagline?: string;
+  original_language?: string;
+  homepage?: string | null;
+  spoken_languages?: SpokenLanguage[];
+  created_by?: Array<{
+    id: number;
+    name: string;
+    profile_path: string | null;
+  }>;
+  seasons?: TVSeasonSummary[];
+  aggregate_credits?: AggregateCreditsResponse;
+  credits?: CreditsResponse;
+  videos?: VideosResponse;
+  images?: {
+    backdrops?: TMDBImageAssetDetail[];
+    logos?: TMDBImageAssetDetail[];
+  };
+  recommendations?: {
+    results: TMDBRelatedItem[];
+  };
+  similar?: {
+    results: TMDBRelatedItem[];
+  };
+  content_ratings?: {
+    results: Array<{
+      iso_3166_1: string;
+      rating: string;
+    }>;
+  };
+  reviews?: {
+    results: TMDBReview[];
+  };
 }
 
 export interface Genre {
@@ -72,6 +222,7 @@ export interface AggregateCreditsResponse {
 
 export interface CreditsResponse {
   cast: CastMember[];
+  crew?: CrewMember[];
 }
 
 export interface Video {

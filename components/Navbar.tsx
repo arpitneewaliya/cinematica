@@ -45,6 +45,8 @@ export function Navbar() {
   }
 
   const isHome = pathname === "/";
+  const hasFullBleedHero =
+    isHome || pathname.startsWith("/movie/") || pathname.startsWith("/tv/");
   const isMoviesRoute = pathname.startsWith("/movies") || pathname.startsWith("/movie/");
   const isTvRoute = pathname.startsWith("/tv");
   const isLibraryRoute =
@@ -52,7 +54,7 @@ export function Navbar() {
     pathname.startsWith("/lists") ||
     pathname.startsWith("/watchlist");
 
-  const showFloatingCapsule = !isHome || isScrolled || mobileMenuOpen;
+  const showFloatingCapsule = !hasFullBleedHero || isScrolled || mobileMenuOpen;
 
   useEffect(() => {
     const updateScrolledState = () => {
@@ -108,7 +110,7 @@ export function Navbar() {
       <header
         className={cn(
           "inset-x-0 top-0 z-50 w-full pointer-events-none transition-all duration-500",
-          isHome ? "fixed" : "sticky",
+          hasFullBleedHero ? "fixed" : "sticky",
           showFloatingCapsule ? "px-3 pt-2.5 sm:px-6 md:pt-3.5" : "px-4 pt-3 sm:px-6 md:px-10 md:pt-5"
         )}
       >

@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import { X, Plus, FolderPlus, ListPlus, Loader2, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, FolderPlus, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getUserLists, createCustomList, addToList, removeFromList, checkItemInLists } from "@/app/actions/lists";
+import {
+  getUserLists,
+  createCustomList,
+  addToList,
+  removeFromList,
+  checkItemInLists,
+} from "@/app/actions/lists";
+import { cn } from "@/lib/utils";
 
 interface AddToCustomListModalProps {
   mediaId: number;
@@ -34,9 +41,8 @@ export function AddToCustomListModal({
   const [lists, setLists] = useState<ListWithCount[]>([]);
   const [activeListIds, setActiveListIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  // Create list form state
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [newListDesc, setNewListDesc] = useState("");
@@ -44,55 +50,91 @@ export function AddToCustomListModal({
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    let active = true;
     async function loadData() {
       try {
         const [userLists, itemLists] = await Promise.all([
           getUserLists(),
           checkItemInLists(mediaId, mediaType),
         ]);
-        setLists(userLists as any);
-        setActiveListIds(itemLists);
+        if (active) {
+          setLists(userLists);
+          setActiveListIds(itemLists);
+        }
       } catch (err) {
         console.error("Failed to load list details:", err);
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
     loadData();
+    return () => {
+      active = false;
+    };
   }, [mediaId, mediaType]);
 
-  const handleToggleList = (listId: string) => {
+  const handleToggleList = async (listId: string) => {
+    setActionError(null);
     const isAlreadyInList = activeListIds.includes(listId);
 
-    // Optimistically update UI
-    setActiveListIds(prev =>
+    setActiveListIds((prev) =>
       isAlreadyInList ? prev.filter((id) => id !== listId) : [...prev, listId]
     );
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === listId
+          ? {
+              ...l,
+              _count: {
+                items: Math.max(0, l._count.items + (isAlreadyInList ? -1 : 1)),
+              },
+            }
+          : l
+      )
+    );
 
-    startTransition(async () => {
-      if (isAlreadyInList) {
-        const res = await removeFromList(listId, mediaId, mediaType);
-        if (!res.success) {
-          // Revert state
-          setActiveListIds(prev => [...prev, listId]);
-          alert(res.error || "Failed to remove from list");
-        }
-      } else {
-        const res = await addToList(listId, {
-          mediaId,
-          mediaType,
-          title,
-          posterPath,
-          backdropPath,
-          releaseDate,
-        });
-        if (!res.success) {
-          // Revert state
-          setActiveListIds(prev => prev.filter((id) => id !== listId));
-          alert(res.error || "Failed to add to list");
-        }
+    if (isAlreadyInList) {
+      const res = await removeFromList(listId, mediaId, mediaType);
+      if (!res.success) {
+        setActiveListIds((prev) => [...prev, listId]);
+        setLists((prev) =>
+          prev.map((l) =>
+            l.id === listId ? { ...l, _count: { items: l._count.items + 1 } } : l
+          )
+        );
+        setActionError(res.error || "Failed to remove from list");
       }
-    });
+    } else {
+      const res = await addToList(listId, {
+        mediaId,
+        mediaType,
+        title,
+        posterPath,
+        backdropPath,
+        releaseDate,
+      });
+      if (!res.success) {
+        setActiveListIds((prev) => prev.filter((id) => id !== listId));
+        setLists((prev) =>
+          prev.map((l) =>
+            l.id === listId
+              ? { ...l, _count: { items: Math.max(0, l._count.items - 1) } }
+              : l
+          )
+        );
+        setActionError(res.error || "Failed to add to list");
+      }
+    }
   };
 
   const handleCreateList = async (e: React.FormEvent) => {
@@ -108,15 +150,13 @@ export function AddToCustomListModal({
         setNewListName("");
         setNewListDesc("");
         setShowCreateForm(false);
-        // Refresh lists
         const freshLists = await getUserLists();
-        setLists(freshLists as any);
-        // Automatically add to the newly created list
-        handleToggleList(res.list.id);
+        setLists(freshLists);
+        await handleToggleList(res.list.id);
       } else {
         setCreateError(res.error || "Failed to create list");
       }
-    } catch (err) {
+    } catch {
       setCreateError("An unexpected error occurred");
     } finally {
       setIsCreating(false);
@@ -124,139 +164,164 @@ export function AddToCustomListModal({
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-300"
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/82 p-4 backdrop-blur-xl animate-in fade-in duration-200"
       onClick={onClose}
     >
-      <div 
-        className="relative w-full max-w-md bg-zinc-950/80 border border-white/10 rounded-2xl overflow-hidden shadow-2xl shadow-primary/10 animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]"
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-to-list-title"
+        className="glass-panel relative w-full max-w-md rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/5 shrink-0">
-          <div>
-            <h3 className="text-xl font-bold text-white">Add to Lists</h3>
-            <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[280px] font-medium">
-              Save "{title}" to your collections
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08] shrink-0">
+          <div className="min-w-0 pr-4">
+            <h3 id="add-to-list-title" className="font-heading text-lg font-bold text-white">
+              Add to Lists
+            </h3>
+            <p className="text-xs text-zinc-400 mt-0.5 truncate">
+              Save &ldquo;{title}&rdquo; to your collections
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/5 transition-colors"
+            aria-label="Close modal"
+            className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-zinc-400 transition-colors hover:bg-white/12 hover:text-white cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="size-4" />
           </button>
         </div>
 
-        {/* Content area - scrollable */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-5 hide-scrollbar">
+          {actionError && (
+            <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3.5 py-2.5 text-xs text-red-300">
+              {actionError}
+            </div>
+          )}
+
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-3">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="text-sm text-gray-400">Loading your lists...</p>
+              <Loader2 className="size-7 text-white animate-spin" />
+              <p className="text-xs text-zinc-400">Loading your lists...</p>
             </div>
           ) : (
             <>
-              {/* Lists Checklist */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {lists.length === 0 ? (
-                  <div className="text-center py-6 border border-dashed border-white/10 rounded-xl">
-                    <p className="text-sm text-gray-500 font-medium mb-1">No custom lists found</p>
-                    <p className="text-xs text-gray-600">Create one below to get started</p>
+                  <div className="text-center py-8 border border-dashed border-white/12 rounded-2xl">
+                    <p className="text-sm text-zinc-300 font-medium mb-1">
+                      No custom lists yet
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      Create one below to start organizing titles
+                    </p>
                   </div>
                 ) : (
                   lists.map((list) => {
                     const isChecked = activeListIds.includes(list.id);
                     return (
-                      <div
+                      <button
                         key={list.id}
+                        type="button"
                         onClick={() => handleToggleList(list.id)}
-                        className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
+                        className={cn(
+                          "w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer select-none",
                           isChecked
-                            ? "bg-primary/5 border-primary/30 text-white"
-                            : "bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10"
-                        }`}
+                            ? "bg-white/12 border-white/30 text-white"
+                            : "bg-white/[0.04] border-white/[0.08] text-zinc-300 hover:bg-white/[0.08] hover:border-white/16"
+                        )}
                       >
                         <div className="flex-1 pr-4 min-w-0">
-                          <p className="text-sm font-semibold truncate">{list.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold truncate">{list.name}</p>
+                            <span className="shrink-0 rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-medium text-zinc-400 tabular-nums">
+                              {list._count.items}
+                            </span>
+                          </div>
                           {list.description && (
-                            <p className="text-xs text-gray-400 truncate mt-0.5">
+                            <p className="text-xs text-zinc-400 truncate mt-0.5">
                               {list.description}
                             </p>
                           )}
                         </div>
-                        <div 
-                          className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${
+                        <div
+                          className={cn(
+                            "size-5 shrink-0 rounded-md flex items-center justify-center border transition-all",
                             isChecked
-                              ? "bg-primary border-primary text-primary-foreground"
-                              : "border-gray-500"
-                          }`}
+                              ? "bg-white border-white text-black"
+                              : "border-zinc-500 bg-transparent"
+                          )}
                         >
-                          {isChecked && <Check className="w-3.5 h-3.5 stroke-[3px]" />}
+                          {isChecked && <Check className="size-3.5 stroke-[3]" />}
                         </div>
-                      </div>
+                      </button>
                     );
                   })
                 )}
               </div>
 
-              {/* Inline Create List Form Toggle */}
               {!showCreateForm ? (
                 <button
+                  type="button"
                   onClick={() => setShowCreateForm(true)}
-                  className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-white/20 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:border-white/40 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-3 border border-dashed border-white/18 rounded-2xl text-xs sm:text-sm font-medium text-zinc-400 hover:text-white hover:border-white/35 hover:bg-white/[0.03] transition-colors cursor-pointer"
                 >
-                  <FolderPlus className="w-4 h-4" /> Create New List
+                  <FolderPlus className="size-4" /> Create New List
                 </button>
               ) : (
-                <form onSubmit={handleCreateList} className="space-y-4 p-4 bg-white/5 rounded-xl border border-white/10 animate-in slide-in-from-top-3 duration-200">
+                <form
+                  onSubmit={handleCreateList}
+                  className="space-y-3.5 p-4 bg-white/[0.04] rounded-2xl border border-white/12 animate-in slide-in-from-top-2 duration-200"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">New List Details</span>
-                    <button 
-                      type="button" 
+                    <span className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">
+                      New Collection
+                    </span>
+                    <button
+                      type="button"
                       onClick={() => setShowCreateForm(false)}
-                      className="text-xs text-gray-400 hover:text-white"
+                      className="text-xs text-zinc-400 hover:text-white cursor-pointer"
                     >
                       Cancel
                     </button>
                   </div>
 
                   {createError && (
-                    <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-lg">
+                    <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-300 text-xs rounded-lg">
                       {createError}
                     </div>
                   )}
 
-                  <div className="space-y-1">
-                    <input
-                      type="text"
-                      placeholder="List Name (e.g., Summer Classics)"
-                      value={newListName}
-                      onChange={(e) => setNewListName(e.target.value)}
-                      maxLength={50}
-                      className="w-full bg-zinc-900 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-all"
-                      required
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="List Name (e.g., Midnight Sci-Fi)"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    maxLength={50}
+                    className="w-full bg-black/40 border border-white/12 text-white rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-white/35 transition-colors placeholder-zinc-500"
+                    required
+                  />
 
-                  <div className="space-y-1">
-                    <textarea
-                      placeholder="Description (Optional)"
-                      value={newListDesc}
-                      onChange={(e) => setNewListDesc(e.target.value)}
-                      rows={2}
-                      maxLength={150}
-                      className="w-full bg-zinc-900 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-all resize-none"
-                    />
-                  </div>
+                  <textarea
+                    placeholder="Description (Optional)"
+                    value={newListDesc}
+                    onChange={(e) => setNewListDesc(e.target.value)}
+                    rows={2}
+                    maxLength={150}
+                    className="w-full bg-black/40 border border-white/12 text-white rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-white/35 transition-colors resize-none placeholder-zinc-500"
+                  />
 
                   <Button
                     type="submit"
                     disabled={isCreating}
-                    className="w-full bg-white hover:bg-gray-100 text-black font-semibold text-xs py-2 h-auto rounded-lg active:scale-98 transition-transform"
+                    className="w-full bg-white hover:bg-zinc-200 text-black font-semibold text-xs py-2.5 h-auto rounded-full active:scale-98 transition-all cursor-pointer"
                   >
                     {isCreating ? (
-                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                      <Loader2 className="size-4 animate-spin mx-auto" />
                     ) : (
                       "Create & Save Item"
                     )}
@@ -268,10 +333,11 @@ export function AddToCustomListModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/5 shrink-0 flex justify-end bg-zinc-950/20">
+        <div className="px-6 py-4 border-t border-white/[0.08] shrink-0 flex justify-end">
           <Button
+            type="button"
             onClick={onClose}
-            className="rounded-full bg-white hover:bg-gray-100 text-black font-bold px-6 py-2.5 text-sm active:scale-95 transition-transform"
+            className="h-9 rounded-full bg-white hover:bg-zinc-200 text-black font-semibold px-6 text-xs sm:text-sm active:scale-95 transition-all cursor-pointer"
           >
             Done
           </Button>

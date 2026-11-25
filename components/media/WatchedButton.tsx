@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Star } from "lucide-react";
+import { Check, Eye, Star } from "lucide-react";
 import { LogWatchedModal } from "./LogWatchedModal";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
-import { getWatchedCount } from "@/app/actions/watched";
+import { getWatchedCount, type MediaWatchEntry } from "@/app/actions/watched";
+import { useOptionalMediaWatch } from "./MediaWatchContext";
 
 interface WatchedButtonProps {
   mediaId: number;
@@ -33,20 +34,24 @@ export function WatchedButton({
   initialLastRating = null,
   className,
 }: WatchedButtonProps) {
-  const [watchCount, setWatchCount] = useState(initialWatchCount);
-  const [lastRating, setLastRating] = useState<number | null>(initialLastRating);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const watchContext = useOptionalMediaWatch();
+  const [standaloneCount, setStandaloneCount] = useState(initialWatchCount);
+  const [standaloneRating, setStandaloneRating] = useState<number | null>(
+    initialLastRating
+  );
+  const [standaloneModalOpen, setStandaloneModalOpen] = useState(false);
   const { isSignedIn } = useAuth();
+  const { openSignIn } = useClerk();
 
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (watchContext || !isSignedIn) return;
 
     let isSubscribed = true;
     getWatchedCount(mediaId, mediaType)
       .then((info) => {
         if (isSubscribed && info.count > 0) {
-          setWatchCount(info.count);
-          setLastRating(info.lastRating);
+          setStandaloneCount(info.count);
+          setStandaloneRating(info.lastRating);
         }
       })
       .catch((err) => {
@@ -56,51 +61,69 @@ export function WatchedButton({
     return () => {
       isSubscribed = false;
     };
-  }, [mediaId, mediaType, isSignedIn]);
+  }, [watchContext, mediaId, mediaType, isSignedIn]);
 
-  const handleOpenModal = () => {
-    if (!isSignedIn) {
-      alert("Please sign in to log watch history");
-      return;
-    }
-    setIsModalOpen(true);
-  };
-
-  const handleSuccess = () => {
-    setWatchCount((prev) => prev + 1);
-  };
+  const watchCount = watchContext
+    ? watchContext.entries.length
+    : standaloneCount;
+  const lastRating = watchContext
+    ? watchContext.entries.find((e) => e.rating && e.rating > 0)?.rating ?? null
+    : standaloneRating;
 
   const isWatched = watchCount > 0;
+
+  const handleOpenModal = () => {
+    if (watchContext) {
+      watchContext.openLogModal();
+      return;
+    }
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
+    setStandaloneModalOpen(true);
+  };
+
+  const handleStandaloneSuccess = (entry?: MediaWatchEntry) => {
+    setStandaloneCount((prev) => prev + 1);
+    if (entry?.rating) {
+      setStandaloneRating(entry.rating);
+    }
+  };
 
   return (
     <>
       <Button
-        variant={isWatched ? "secondary" : "outline"}
+        type="button"
+        variant={isWatched ? "default" : "outline"}
         onClick={handleOpenModal}
         className={cn(
-          "gap-2 font-semibold rounded-full px-6 transition-all duration-300",
+          "gap-2 rounded-full px-5 font-semibold transition-all duration-200 active:scale-95 cursor-pointer",
           isWatched
-            ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/5 hover:scale-[1.02] active:scale-95"
-            : "bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white hover:scale-[1.02] active:scale-95",
+            ? "bg-white text-black hover:bg-zinc-200 shadow-[0_6px_24px_rgba(255,255,255,0.16)]"
+            : "border-white/15 bg-white/[0.07] text-white backdrop-blur-xl hover:border-white/30 hover:bg-white/[0.14] hover:text-white",
           className
         )}
       >
-        <Eye className={`w-5 h-5 transition-transform ${isWatched ? "fill-emerald-400/20 scale-110" : ""}`} />
+        {isWatched ? (
+          <Check className="size-4 stroke-[2.5]" />
+        ) : (
+          <Eye className="size-4" />
+        )}
         <span>
-          {isWatched 
-            ? `Watched${watchCount > 1 ? ` (${watchCount}x)` : ""}` 
-            : "Mark as Watched"
-          }
+          {isWatched
+            ? `Watched${watchCount > 1 ? ` (${watchCount}×)` : ""}`
+            : "Log Watch"}
         </span>
         {isWatched && lastRating && (
-          <span className="flex items-center gap-0.5 ml-1 pl-2 border-l border-emerald-500/30 text-yellow-500 text-xs">
-            <Star className="w-3.5 h-3.5 fill-current" />
+          <span className="ml-0.5 flex items-center gap-0.5 border-l border-black/15 pl-2 text-xs font-bold tabular-nums">
+            <Star className="size-3 fill-amber-500 text-amber-500" />
             {lastRating}
           </span>
         )}
       </Button>
 
-      {isModalOpen && (
+      {!watchContext && standaloneModalOpen && (
         <LogWatchedModal
           mediaId={mediaId}
           mediaType={mediaType}
@@ -109,8 +132,8 @@ export function WatchedButton({
           backdropPath={backdropPath}
           releaseDate={releaseDate}
           runtime={runtime}
-          onClose={() => setIsModalOpen(false)}
-          onSuccess={handleSuccess}
+          onClose={() => setStandaloneModalOpen(false)}
+          onSuccess={handleStandaloneSuccess}
         />
       )}
     </>

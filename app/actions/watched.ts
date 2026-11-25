@@ -52,7 +52,7 @@ export async function addToWatchedHistory(data: {
     revalidatePath("/watchlist");
     revalidatePath(`/${data.mediaType}/${data.mediaId}`);
     return { success: true, item };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to add to watched history:", error);
     return { success: false, error: "Failed to add to watch history" };
   }
@@ -100,6 +100,45 @@ export async function getUserWatchedHistory() {
     return items;
   } catch (error) {
     console.error("Failed to get watched history:", error);
+    return [];
+  }
+}
+
+export interface MediaWatchEntry {
+  id: string;
+  watchedAt: Date;
+  rating: number | null;
+  notes: string | null;
+  runtime: number | null;
+}
+
+export async function getMediaWatchEntries(
+  mediaId: number,
+  mediaType: "movie" | "tv"
+): Promise<MediaWatchEntry[]> {
+  try {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    return await prisma.watchedItem.findMany({
+      where: {
+        userId,
+        mediaId,
+        mediaType,
+      },
+      orderBy: {
+        watchedAt: "desc",
+      },
+      select: {
+        id: true,
+        watchedAt: true,
+        rating: true,
+        notes: true,
+        runtime: true,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch media watch entries:", error);
     return [];
   }
 }

@@ -21,6 +21,7 @@ interface WatchlistContextType {
     backdropPath?: string | null;
     releaseDate?: string | null;
   }) => Promise<boolean>;
+  removeLocalItem: (mediaId: number, mediaType: "movie" | "tv") => void;
   isLoading: boolean;
 }
 
@@ -152,6 +153,17 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
     [isSignedIn, openSignIn, savedKeys]
   );
 
+  const removeLocalItem = React.useCallback(
+    (mediaId: number, mediaType: "movie" | "tv") => {
+      setItems((prev) =>
+        prev.filter(
+          (item) => !(item.mediaId === mediaId && item.mediaType === mediaType)
+        )
+      );
+    },
+    []
+  );
+
   return (
     <WatchlistContext.Provider
       value={{
@@ -159,6 +171,7 @@ export function WatchlistProvider({ children }: { children: React.ReactNode }) {
         watchlistIds,
         isSaved,
         toggleWatchlist,
+        removeLocalItem,
         isLoading,
       }}
     >

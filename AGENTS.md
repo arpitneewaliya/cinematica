@@ -36,7 +36,12 @@ Cinematica is a modern, responsive web application for discovering trending, pop
 - `components/`: Reusable React components.
   - `ui/`: Base primitives and design wrappers.
   - `media/`: Components specific to movie/TV show pages, history feeds, search dialog, and list creation/log dialogues:
-    - `MediaHero.tsx`: Immersive banner with trailer triggers and interactive logs.
+    - `MediaHero.tsx`: Unified above-the-fold editorial stage with poster, logo/title, crew credits, clickable genres, and complete action bar.
+    - `MediaWatchContext.tsx` & `PersonalWatchLog.tsx`: Synchronized detail-page watch tracking and personal watch history log cards.
+    - `MediaDetailsGrid.tsx`: Region-aware "Where to Watch" streaming options and structured Film/Series production facts.
+    - `SeasonEpisodeBrowser.tsx`: Interactive TV season selector and episode guide with stills, runtimes, and ratings.
+    - `MediaGallery.tsx` & `MediaReviews.tsx`: Videos & theatrical stills lightbox gallery and expandable audience reviews.
+    - `MediaDetailSkeleton.tsx`: Streaming loading skeleton shared by movie and TV detail routes.
     - `WatchedButton.tsx` & `LogWatchedModal.tsx`: Dialogs/controls to log media to watched history with ratings and review notes.
     - `WatchlistButton.tsx` & `MiniWatchlistButton.tsx`: Add/remove items from the watchlist.
     - `AddToCustomListButton.tsx` & `AddToCustomListModal.tsx`: Add media items to custom folders.
@@ -45,7 +50,7 @@ Cinematica is a modern, responsive web application for discovering trending, pop
     - `HistoryFeed.tsx`: Render user watch history cards and stats charts.
     - `SearchModal.tsx`: Interactive cmd-palette style global search.
     - `TrailerModal.tsx`: Play YouTube trailers.
-    - `CastRow.tsx`: Cast profiles row.
+    - `CastRow.tsx`: Cast profiles carousel row.
   - `Navbar.tsx`: Floating frosted-glass capsule global navigation header with Clerk triggers, country switcher, library dropdown, and search activation.
   - `Footer.tsx`: Minimal monochrome global footer.
   - `Hero.tsx`: `85svh` crossfade home showcase with Trio CTAs, quiet streaming icons, and animated slide progress dock.

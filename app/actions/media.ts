@@ -1,7 +1,7 @@
 "use server";
 
-import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, fetchTrendingMedia, getMovieVideos, getTVVideos, getMediaWatchProviders, CountryWatchProviders } from "@/lib/tmdb";
-import { Video } from "@/types/tmdb";
+import { TMDBItem, fetchMediaChunkData, discoverMedia, searchMedia, fetchTrendingMedia, getMovieVideos, getTVVideos, getMediaWatchProviders, getTVSeasonDetails, CountryWatchProviders } from "@/lib/tmdb";
+import { Video, TVSeasonDetails } from "@/types/tmdb";
 
 export async function fetchMediaChunk(
   mediaType: "movie" | "tv",
@@ -87,6 +87,18 @@ export async function getWatchProvidersAction(
     return data?.results[countryCode] || null;
   } catch (error) {
     console.error(`Error fetching watch providers for ${mediaType} ${id} (${countryCode}):`, error);
+    return null;
+  }
+}
+
+export async function getTVSeasonAction(
+  tvId: number,
+  seasonNumber: number
+): Promise<TVSeasonDetails | null> {
+  try {
+    return await getTVSeasonDetails(tvId, seasonNumber);
+  } catch (error) {
+    console.error(`Error fetching season ${seasonNumber} for TV ${tvId}:`, error);
     return null;
   }
 }

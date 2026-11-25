@@ -26,8 +26,13 @@ export async function createCustomList(name: string, description?: string | null
 
     revalidatePath("/lists");
     return { success: true, list };
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
       return { success: false, error: "A list with this name already exists" };
     }
     console.error("Failed to create list:", error);
@@ -103,8 +108,13 @@ export async function addToList(
     revalidatePath(`/lists/${listId}`);
     revalidatePath("/lists");
     return { success: true, listItem };
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
       return { success: false, error: "Item is already in this list" };
     }
     console.error("Failed to add item to list:", error);

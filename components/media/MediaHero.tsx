@@ -2,17 +2,21 @@
 
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { getImageUrl } from "@/lib/tmdb";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useCountry } from "@/components/providers/CountryProvider";
 import { WatchlistButton } from "./WatchlistButton";
 import { WatchedButton } from "./WatchedButton";
 import { AddToCustomListButton } from "./AddToCustomListButton";
 import { TrailerModal } from "./TrailerModal";
-import { Star, Clock, Calendar, VolumeX, Volume2, Play, Pause } from "lucide-react";
+import { Star, Clock, Calendar, Film, Tv, Share2, Check } from "lucide-react";
 import { Video } from "@/types/tmdb";
-import { cn } from "@/lib/utils";
+import { formatMediaRating, getMediaReleaseInfo } from "@/lib/media-display";
+
+export interface KeyCrewCredit {
+  id: number;
+  name: string;
+  role: string;
+}
 
 interface MediaHeroProps {
   id: number;
@@ -22,13 +26,41 @@ interface MediaHeroProps {
   backdropPath: string | null;
   posterPath: string | null;
   rating: number;
+  voteCount?: number;
   releaseDate: string | null;
+  lastAirDate?: string | null;
   runtime?: number | null;
+  numberOfSeasons?: number;
+  numberOfEpisodes?: number;
+  status?: string;
+  inProduction?: boolean;
+  tagline?: string;
+  certification?: string | null;
   genres: { id: number; name: string }[];
   videos: Video[];
+  logoPath?: string | null;
+  logoAspectRatio?: number | null;
+  keyCrew?: KeyCrewCredit[];
   isSaved?: boolean;
   initialWatchCount?: number;
   initialLastRating?: number | null;
+}
+
+function formatVoteCount(count?: number): string {
+  if (!count || count <= 0) return "";
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1)}K`;
+  }
+  return String(count);
+}
+
+function formatRuntime(minutes?: number | null): string {
+  if (!minutes || minutes <= 0) return "";
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hrs === 0) return `${mins}m`;
+  if (mins === 0) return `${hrs}h`;
+  return `${hrs}h ${mins}m`;
 }
 
 export function MediaHero({
@@ -39,386 +71,260 @@ export function MediaHero({
   backdropPath,
   posterPath,
   rating,
+  voteCount,
   releaseDate,
+  lastAirDate,
   runtime,
+  numberOfSeasons,
+  numberOfEpisodes,
+  status,
+  inProduction,
+  tagline,
+  certification,
   genres,
   videos,
+  logoPath,
+  logoAspectRatio,
+  keyCrew = [],
   isSaved = false,
   initialWatchCount = 0,
   initialLastRating = null,
 }: MediaHeroProps) {
-  const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
-  const trailer = videos.find((v) => v.type === "Trailer" && v.site === "YouTube") || videos[0];
+  const [copied, setCopied] = React.useState(false);
 
-  const [isMuted, setIsMuted] = React.useState(true);
-  const [isPlaying, setIsPlaying] = React.useState(true);
-  const [isVideoLoaded, setIsVideoLoaded] = React.useState(false);
-  const [isUserActive, setIsUserActive] = React.useState(true);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const releaseInfo = getMediaReleaseInfo(releaseDate);
+  const endYear = lastAirDate?.match(/^\d{4}/)?.[0] ?? "";
+  const yearLabel =
+    type === "tv" && releaseInfo.year
+      ? inProduction || status === "Returning Series"
+        ? `${releaseInfo.year}–Present`
+        : endYear && endYear !== releaseInfo.year
+        ? `${releaseInfo.year}–${endYear}`
+        : releaseInfo.year
+      : releaseInfo.year;
 
-  React.useEffect(() => {
-    if (!isVideoLoaded || !isPlaying) {
-      return;
-    }
+  const trailer =
+    videos.find((v) => v.type === "Trailer" && v.site === "YouTube") ||
+    videos.find((v) => v.type === "Teaser" && v.site === "YouTube") ||
+    videos.find((v) => v.site === "YouTube");
 
-    let timeoutId: NodeJS.Timeout;
+  const backdropUrl = getImageUrl(backdropPath || posterPath, "original");
+  const posterUrl = getImageUrl(posterPath, "w500");
+  const logoHeight = logoAspectRatio ? Math.round(520 / logoAspectRatio) : 160;
+  const runtimeLabel = formatRuntime(runtime);
+  const votesLabel = formatVoteCount(voteCount);
+  const genreBasePath = type === "movie" ? "/movies" : "/tv";
 
-    const handleActivity = () => {
-      setIsUserActive(true);
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setIsUserActive(false);
-      }, 3000);
-    };
-
-    // Initial timeout trigger
-    timeoutId = setTimeout(() => {
-      setIsUserActive(false);
-    }, 3000);
-
-    const events = ["mousemove", "mousedown", "scroll", "keydown", "touchstart"];
-    events.forEach((event) => {
-      window.addEventListener(event, handleActivity);
-    });
-
-    return () => {
-      clearTimeout(timeoutId);
-      events.forEach((event) => {
-        window.removeEventListener(event, handleActivity);
-      });
-    };
-  }, [isPlaying, isVideoLoaded]);
-
-  const shouldHideDetails = isVideoLoaded && isPlaying && !isUserActive;
-
-  const { country } = useCountry();
-  const [providers, setProviders] = React.useState<any>(null);
-  const [loadingProviders, setLoadingProviders] = React.useState(true);
-
-  // Reset states in render phase when media item id changes
-  const [prevId, setPrevId] = React.useState(id);
-  if (id !== prevId) {
-    setPrevId(id);
-    setIsVideoLoaded(false);
-    setIsMuted(true);
-    setIsPlaying(true);
-    setProviders(null);
-  }
-
-  React.useEffect(() => {
-    const fetchProviders = async () => {
-      setLoadingProviders(true);
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    if (navigator.share) {
       try {
-        const res = await fetch(`/api/watch-providers?id=${id}&type=${type}&country=${encodeURIComponent(country)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProviders(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch watch providers:", err);
-      } finally {
-        setLoadingProviders(false);
-      }
-    };
-
-    fetchProviders();
-  }, [id, type, country]);
-
-  const toggleMute = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      const command = isMuted ? "unMute" : "mute";
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: "command", func: command }),
-        "*"
-      );
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const togglePlay = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      if (isPlaying) {
-        // Pausing: mute the video so sound stops, but let playback continue at opacity-0
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: "command", func: "mute" }),
-          "*"
-        );
-      } else {
-        // Playing: unmute if the user hasn't explicitly muted
-        if (!isMuted) {
-          iframeRef.current.contentWindow.postMessage(
-            JSON.stringify({ event: "command", func: "unMute" }),
-            "*"
-          );
-        }
+        await navigator.share({
+          title: `${title} — Cinematica`,
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // User cancelled or Web Share unsupported in this context; fall back to copy
       }
     }
-    setIsPlaying(!isPlaying);
-  };
 
-  const handleVideoLoad = () => {
-    // A small delay lets the YouTube iframe settle to prevent visual flashes
-    setTimeout(() => {
-      setIsVideoLoaded(true);
-    }, 500);
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Ignore clipboard failures
+    }
   };
 
   return (
-    <>
-      {/* Part 1: Ambient Video/Backdrop Banner */}
-      <div className="relative w-full h-[70vh] md:h-[80vh] min-h-[500px] md:min-h-[600px] flex items-end pb-12 px-4 md:px-8">
-        {/* Background Media & Ambient Video Preview */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
-          {/* Static Backdrop Image (visible when trailer is not loaded or playing) */}
-          {backdropPath && (
-            <Image
-              src={getImageUrl(backdropPath, "original")}
-              alt={title}
-              fill
-              priority
-              className={cn(
-                "object-cover transition-opacity duration-1000 ease-in-out z-0",
-                (isVideoLoaded && isPlaying) ? "opacity-0" : "opacity-80"
-              )}
-            />
-          )}
+    <section className="relative min-h-[72svh] w-full overflow-hidden bg-[#070708] pt-28 pb-10 md:pt-36 md:pb-14 flex items-end">
+      {/* Static High-Resolution Backdrop & Multi-Stop Obsidian Vignettes */}
+      <div className="pointer-events-none absolute inset-0 select-none">
+        {backdropUrl && (
+          <Image
+            src={backdropUrl}
+            alt={title}
+            fill
+            priority
+            className="object-cover object-top opacity-65"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070708] via-[#070708]/78 to-[#070708]/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070708]/95 via-[#070708]/55 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 to-transparent" />
+      </div>
 
-          {/* Muted background preview loop */}
-          {trailer && (
-            <div className={cn(
-              "absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none scale-[1.35] md:scale-[1.25]",
-              (isVideoLoaded && isPlaying) ? "opacity-100" : "opacity-0"
-            )}>
-              <iframe
-                ref={iframeRef}
-                width="100%"
-                height="100%"
-                src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailer.key}&enablejsapi=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1`}
-                title="Preview Trailer"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                className="w-full h-full pointer-events-none"
-                onLoad={handleVideoLoad}
-              ></iframe>
-            </div>
-          )}
+      {/* Unified Above-the-Fold 2-Column Editorial Stage */}
+      <div className="relative z-20 container mx-auto px-4 sm:px-6 md:px-10">
+        <div className="flex flex-col md:flex-row gap-7 md:gap-10 lg:gap-12 items-start md:items-end">
+          {/* Framed 2:3 Poster */}
+          <div className="relative w-40 sm:w-48 md:w-60 lg:w-68 shrink-0 aspect-[2/3] overflow-hidden rounded-2xl bg-zinc-900 ring-1 ring-white/15 shadow-[0_28px_70px_-12px_rgba(0,0,0,0.95)]">
+            {posterUrl ? (
+              <Image
+                src={posterUrl}
+                alt={title}
+                fill
+                priority
+                sizes="(max-width: 640px) 160px, (max-width: 768px) 192px, 272px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-600">
+                {type === "movie" ? (
+                  <Film className="size-10 stroke-[1.5]" />
+                ) : (
+                  <Tv className="size-10 stroke-[1.5]" />
+                )}
+                <span className="px-4 text-center text-xs text-zinc-500">{title}</span>
+              </div>
+            )}
+            <div className="pointer-events-none absolute inset-0 rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]" />
+          </div>
 
-          {/* overlays to blend it into the dark background and guarantee text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent z-20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/30 via-transparent to-transparent z-20" />
-        </div>
+          {/* Title, Metadata, Synopsis, Crew & Complete Action Bar */}
+          <div className="flex-1 min-w-0 max-w-3xl space-y-4 sm:space-y-5">
+            {/* Eyebrow Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                {type === "movie" ? "Feature Film" : "Television Series"}
+              </span>
 
-        <div className="container relative z-30 mx-auto px-4 md:px-8 w-full">
-          {/* Minimal Hero overlay (Title + metadata) */}
-          <div className={cn(
-            "flex flex-col gap-4 max-w-3xl text-left transition-all duration-700 ease-in-out origin-bottom",
-            shouldHideDetails 
-              ? "opacity-0 translate-y-4 pointer-events-none select-none" 
-              : "opacity-100 translate-y-0"
-          )}>
-            <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] tracking-tight leading-tight">
-              {title}
-            </h1>
-
-            <div className="flex flex-wrap items-center justify-start gap-2 md:gap-4 text-xs md:text-sm font-semibold text-zinc-200">
-              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-none gap-1 py-0.5 tabular-nums font-semibold">
-                <Star className="w-3.5 h-3.5 fill-current" />
-                {rating.toFixed(1)}
-              </Badge>
-              {year && (
-                <span className="flex items-center gap-1 drop-shadow-md tabular-nums text-zinc-300 font-medium">
-                  <Calendar className="w-4 h-4" /> {year}
+              {certification && (
+                <span className="rounded-md border border-white/18 bg-black/50 px-2 py-0.5 font-mono text-[11px] font-semibold text-zinc-200 backdrop-blur-md">
+                  {certification}
                 </span>
               )}
-              {runtime ? (
-                <span className="flex items-center gap-1 drop-shadow-md tabular-nums text-zinc-300 font-medium">
-                  <Clock className="w-4 h-4" /> {Math.floor(runtime / 60)}h {runtime % 60}m
+
+              {releaseInfo.isUpcoming ? (
+                <span className="rounded-full border border-white/15 bg-white/[0.08] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-200">
+                  Upcoming
+                </span>
+              ) : status && status !== "Released" ? (
+                <span className="rounded-full border border-white/12 bg-black/40 px-3 py-1 text-[11px] font-medium text-zinc-300 backdrop-blur-md">
+                  {status}
                 </span>
               ) : null}
             </div>
 
-            <div className="flex flex-wrap items-center justify-start gap-2 mt-1">
-              {genres.map((g) => (
-                <Badge key={g.id} variant="outline" className="border-white/20 text-zinc-200 backdrop-blur-md bg-black/30 font-medium text-xs px-2.5 py-0.5">
-                  {g.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
+            {/* Title / Official Film Logo + Tagline */}
+            <div className="space-y-2">
+              <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.04]">
+                {logoPath ? (
+                  <>
+                    <span className="sr-only">{title}</span>
+                    <Image
+                      src={getImageUrl(logoPath, "original")}
+                      alt=""
+                      width={520}
+                      height={logoHeight}
+                      priority
+                      className="block h-auto max-h-20 sm:max-h-24 md:max-h-32 w-auto max-w-[min(82vw,480px)] object-contain object-left drop-shadow-[0_8px_28px_rgba(0,0,0,0.9)]"
+                    />
+                  </>
+                ) : (
+                  <span className="drop-shadow-[0_6px_28px_rgba(0,0,0,0.9)]">
+                    {title}
+                  </span>
+                )}
+              </h1>
 
-        {/* Ambient controls */}
-        {trailer && isVideoLoaded && (
-          <div className={cn(
-            "absolute right-4 md:right-8 bottom-12 z-30 flex items-center gap-3 animate-in fade-in duration-500 transition-all duration-700 ease-in-out",
-            shouldHideDetails ? "opacity-0 pointer-events-none translate-y-2 select-none" : "opacity-100 translate-y-0"
-          )}>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={togglePlay}
-              className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105 animate-in zoom-in-50 duration-300"
-              aria-label={isPlaying ? "Pause trailer" : "Play trailer"}
-            >
-              {isPlaying ? (
-                <Pause className="w-5 h-5 fill-current" />
-              ) : (
-                <Play className="w-5 h-5 fill-current text-primary" />
+              {tagline && (
+                <p className="text-sm sm:text-base italic text-zinc-400 font-normal">
+                  &ldquo;{tagline}&rdquo;
+                </p>
               )}
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={toggleMute}
-              className="rounded-full w-10 h-10 md:w-12 md:h-12 border-white/10 bg-black/40 hover:bg-black/60 text-white backdrop-blur-md cursor-pointer transition-transform hover:scale-105 animate-in zoom-in-50 duration-300"
-              aria-label={isMuted ? "Unmute preview" : "Mute preview"}
-            >
-              {isMuted ? (
-                <VolumeX className="w-5 h-5" />
+            </div>
+
+            {/* Unified Metadata Strip */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm font-medium text-zinc-300">
+              {rating > 0 ? (
+                <span className="inline-flex items-center gap-1.5 font-semibold text-white tabular-nums">
+                  <Star className="size-4 fill-amber-400 text-amber-400" />
+                  <span>{formatMediaRating(rating)}</span>
+                  {votesLabel && (
+                    <span className="text-xs font-normal text-zinc-400">
+                      ({votesLabel})
+                    </span>
+                  )}
+                </span>
               ) : (
-                <Volume2 className="w-5 h-5 text-primary" />
+                <span className="text-zinc-400">Not rated yet</span>
               )}
-            </Button>
-          </div>
-        )}
-      </div>
 
-      {/* Part 2: Details & Actions Section (Below the fold) */}
-      <div className="w-full bg-[#0a0a0a] border-t border-white/5 relative z-30 py-12 md:py-16">
-        <div className="container mx-auto px-4 md:px-8 flex flex-col md:flex-row gap-8 md:gap-12 items-start">
-          {/* Poster Column */}
-          {posterPath && (
-            <div className="relative shrink-0 w-48 h-72 sm:w-56 sm:h-84 md:w-72 md:h-[27rem] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-              <Image
-                src={getImageUrl(posterPath, "w500")}
-                alt={title}
-                fill
-                priority
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+              {yearLabel && (
+                <>
+                  <span className="text-zinc-600">·</span>
+                  <span className="inline-flex items-center gap-1.5 tabular-nums text-zinc-200">
+                    <Calendar className="size-3.5 text-zinc-400" />
+                    {yearLabel}
+                  </span>
+                </>
+              )}
+
+              {runtimeLabel && (
+                <>
+                  <span className="text-zinc-600">·</span>
+                  <span className="inline-flex items-center gap-1.5 tabular-nums text-zinc-200">
+                    <Clock className="size-3.5 text-zinc-400" />
+                    {runtimeLabel}
+                  </span>
+                </>
+              )}
+
+              {type === "tv" && numberOfSeasons && numberOfSeasons > 0 ? (
+                <>
+                  <span className="text-zinc-600">·</span>
+                  <span className="tabular-nums text-zinc-200">
+                    {numberOfSeasons} {numberOfSeasons === 1 ? "Season" : "Seasons"}
+                    {numberOfEpisodes ? ` · ${numberOfEpisodes} Episodes` : ""}
+                  </span>
+                </>
+              ) : null}
             </div>
-          )}
 
-          {/* Details & Info Column */}
-          <div className="flex-1 text-left flex flex-col gap-6">
-            <div>
-              <h2 className="font-heading text-xl md:text-2xl font-bold text-white mb-3">Synopsis</h2>
-              <p className="text-zinc-200 text-base md:text-lg leading-relaxed max-w-3xl font-normal">
-                {overview || "No synopsis available."}
-              </p>
-            </div>
+            {/* Clickable Genre Pills */}
+            {genres.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                {genres.map((g) => (
+                  <Link
+                    key={g.id}
+                    href={`${genreBasePath}?genre=${g.id}`}
+                    className="rounded-full border border-white/12 bg-white/[0.05] px-3 py-1 text-xs font-medium text-zinc-200 backdrop-blur-md transition-all hover:border-white/30 hover:bg-white/[0.13] hover:text-white active:scale-95"
+                  >
+                    {g.name}
+                  </Link>
+                ))}
+              </div>
+            )}
 
-            {/* Watch Providers / Streaming availability */}
-            <div className="border-t border-white/5 pt-6">
-              <h3 className="font-heading text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <span>Watch Options</span>
-                <Badge variant="outline" className="text-xs uppercase border-white/10 text-zinc-300 font-semibold px-2 py-0.5 rounded">
-                  {country}
-                </Badge>
-              </h3>
+            {/* Full Readable Synopsis */}
+            <p className="max-w-3xl text-sm sm:text-base leading-relaxed text-zinc-200/95">
+              {overview || "No synopsis available for this title."}
+            </p>
 
-              {loadingProviders ? (
-                <div className="flex gap-4 items-center">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse border border-white/5" />
-                  <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse border border-white/5" />
-                  <div className="w-10 h-10 rounded-xl bg-white/5 animate-pulse border border-white/5" />
-                </div>
-              ) : (() => {
-                const flatrate = providers?.flatrate || [];
-                const free = providers?.free || [];
-                const rent = providers?.rent || [];
-                const buy = providers?.buy || [];
-                const stream = [...free, ...flatrate];
-
-                if (stream.length === 0 && rent.length === 0 && buy.length === 0) {
-                  return (
-                    <p className="text-sm text-gray-400">
-                      Not available for streaming or purchase in your region. Check{" "}
-                      <a
-                        href={providers?.link || "https://www.justwatch.com"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline inline-flex items-center gap-0.5 font-medium"
-                      >
-                        JustWatch
-                      </a>{" "}
-                      for details.
-                    </p>
-                  );
-                }
-
-                return (
-                  <div className="flex flex-col gap-5">
-                    {/* Streaming option */}
-                    {stream.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                          Stream
-                        </span>
-                        <div className="flex flex-wrap gap-2.5">
-                          {stream.map((p) => (
-                            <a
-                              key={p.provider_id}
-                              href={providers.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title={`${p.provider_name} (opens JustWatch)`}
-                              className="group/logo relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 hover:border-white/20 bg-black/45 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer shadow-sm"
-                            >
-                              <Image
-                                src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
-                                alt={p.provider_name}
-                                fill
-                                className="object-cover"
-                              />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Rent/Buy options */}
-                    {(rent.length > 0 || buy.length > 0) && (
-                      <div className="flex flex-col gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                          Rent / Buy
-                        </span>
-                        <div className="flex flex-wrap gap-2.5">
-                          {[...rent, ...buy]
-                            .filter((v, i, a) => a.findIndex((t) => t.provider_id === v.provider_id) === i)
-                            .map((p) => (
-                              <a
-                                key={p.provider_id}
-                                href={providers.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={`${p.provider_name} (opens JustWatch)`}
-                                className="group/logo relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 hover:border-white/20 bg-black/45 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer shadow-sm"
-                              >
-                                <Image
-                                  src={`https://image.tmdb.org/t/p/w92${p.logo_path}`}
-                                  alt={p.provider_name}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </a>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+            {/* Key Crew Links */}
+            {keyCrew.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-0.5 text-xs sm:text-sm">
+                {keyCrew.map((member) => (
+                  <div key={`${member.role}-${member.id}`} className="flex items-center gap-1.5">
+                    <span className="text-zinc-500">{member.role}</span>
+                    <Link
+                      href={`/person/${member.id}`}
+                      className="font-semibold text-zinc-100 underline-offset-4 hover:text-white hover:underline"
+                    >
+                      {member.name}
+                    </Link>
                   </div>
-                );
-              })()}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {/* Action Buttons Row */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-start gap-3 md:gap-4 pt-4 w-full sm:w-auto">
-              {trailer && (
-                <TrailerModal 
-                  video={trailer} 
-                  className="col-span-2 sm:col-span-auto w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
-                />
-              )}
+            {/* Complete Action Bar */}
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
+              {trailer && <TrailerModal video={trailer} className="h-11" />}
+
               <WatchlistButton
                 mediaId={id}
                 mediaType={type}
@@ -427,8 +333,9 @@ export function MediaHero({
                 backdropPath={backdropPath}
                 releaseDate={releaseDate}
                 initialIsSaved={isSaved}
-                className="w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+                className="h-11"
               />
+
               <WatchedButton
                 mediaId={id}
                 mediaType={type}
@@ -439,8 +346,9 @@ export function MediaHero({
                 runtime={runtime}
                 initialWatchCount={initialWatchCount}
                 initialLastRating={initialLastRating}
-                className="w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+                className="h-11"
               />
+
               <AddToCustomListButton
                 mediaId={id}
                 mediaType={type}
@@ -448,13 +356,31 @@ export function MediaHero({
                 posterPath={posterPath}
                 backdropPath={backdropPath}
                 releaseDate={releaseDate}
-                className="col-span-2 sm:col-span-auto w-full sm:w-auto h-11 md:h-12 text-sm md:text-base"
+                className="h-11"
               />
+
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label="Share or copy link"
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 text-xs sm:text-sm font-semibold text-zinc-200 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.14] hover:text-white active:scale-95 cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <Check className="size-4 text-white" />
+                    <span>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="size-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </section>
   );
 }
-

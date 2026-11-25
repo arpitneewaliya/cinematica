@@ -100,9 +100,11 @@ export async function fetchTrendingMedia(): Promise<TMDBItem[]> {
     .slice(0, 20);
 }
 
-function getPreferredLogo(logos: TMDBImageAsset[] = []): TMDBImageAsset | undefined {
+export function getPreferredLogo<
+  T extends { iso_639_1?: string | null; vote_count: number; vote_average: number }
+>(logos: T[] = []): T | undefined {
   return logos.toSorted((first, second) => {
-    const languageScore = (logo: TMDBImageAsset) =>
+    const languageScore = (logo: T) =>
       logo.iso_639_1 === 'en' ? 2 : logo.iso_639_1 === null ? 1 : 0;
 
     return (
@@ -181,6 +183,7 @@ export async function fetchMoviesByIds(movieIds: number[]): Promise<TMDBItem[]> 
 import {
   MovieDetails,
   TVDetails,
+  TVSeasonDetails,
   CreditsResponse,
   VideosResponse,
   PersonDetails,
@@ -223,6 +226,42 @@ export async function getMovieDetails(id: string): Promise<MovieDetails | null> 
 
 export async function getTVDetails(id: string): Promise<TVDetails | null> {
   return fetchFromTMDB<TVDetails>(`/tv/${id}`).catch(() => null);
+}
+
+export async function getFullMovieDetails(id: string): Promise<MovieDetails | null> {
+  try {
+    const data = await fetchFromTMDB<MovieDetails>(
+      `/movie/${id}?append_to_response=credits,videos,images,recommendations,similar,release_dates,reviews&include_image_language=en,null`
+    );
+    return data && typeof data.id === "number" ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getFullTVDetails(id: string): Promise<TVDetails | null> {
+  try {
+    const data = await fetchFromTMDB<TVDetails>(
+      `/tv/${id}?append_to_response=aggregate_credits,credits,videos,images,recommendations,similar,content_ratings,reviews&include_image_language=en,null`
+    );
+    return data && typeof data.id === "number" ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getTVSeasonDetails(
+  tvId: string | number,
+  seasonNumber: number
+): Promise<TVSeasonDetails | null> {
+  try {
+    const data = await fetchFromTMDB<TVSeasonDetails>(
+      `/tv/${tvId}/season/${seasonNumber}`
+    );
+    return data && Array.isArray(data.episodes) ? data : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getMovieCredits(id: string): Promise<CreditsResponse | null> {

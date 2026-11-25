@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ListPlus } from "lucide-react";
 import { AddToCustomListModal } from "./AddToCustomListModal";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 
 interface AddToCustomListButtonProps {
@@ -28,10 +28,11 @@ export function AddToCustomListButton({
 }: AddToCustomListButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { isSignedIn } = useAuth();
+  const { openSignIn } = useClerk();
 
   const handleOpen = () => {
     if (!isSignedIn) {
-      alert("Please sign in to add items to lists");
+      openSignIn();
       return;
     }
     setIsOpen(true);
@@ -40,14 +41,15 @@ export function AddToCustomListButton({
   return (
     <>
       <Button
+        type="button"
         variant="outline"
         onClick={handleOpen}
         className={cn(
-          "gap-2 font-semibold rounded-full px-6 bg-background/20 hover:bg-background/40 backdrop-blur-md border-white/20 text-white hover:scale-[1.02] active:scale-95 transition-all duration-300",
+          "gap-2 rounded-full border-white/15 bg-white/[0.07] px-5 font-semibold text-white backdrop-blur-xl transition-all duration-200 hover:border-white/30 hover:bg-white/[0.14] hover:text-white active:scale-95 cursor-pointer",
           className
         )}
       >
-        <ListPlus className="w-5 h-5 text-gray-300" />
+        <ListPlus className="size-4 text-zinc-300" />
         Add to List
       </Button>
 
