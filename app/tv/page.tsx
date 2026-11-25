@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { fetchMediaChunkData } from "@/lib/tmdb";
 import { MediaListTabs } from "@/components/MediaListTabs";
 
@@ -16,12 +17,14 @@ export default async function TvShowsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <MediaListTabs 
-        title="TV Shows" 
-        mediaType="tv"
-        popular={popular} 
-        topRated={topRated}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
+        <MediaListTabs
+          title="TV Series"
+          mediaType="tv"
+          popular={popular}
+          topRated={topRated}
+        />
+      </Suspense>
     </main>
   );
 }

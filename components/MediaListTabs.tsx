@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { TMDBItem } from "@/lib/tmdb";
 import { MediaCard } from "./MediaCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,7 +66,23 @@ interface MediaListTabsProps {
 }
 
 export function MediaListTabs({ title, mediaType, popular, topRated }: MediaListTabsProps) {
-  const [activeTab, setActiveTab] = useState<"popular" | "topRated">("popular");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const genreParam = searchParams.get("genre");
+  const searchKey = `${tabParam ?? ""}|${genreParam ?? ""}`;
+
+  const parseGenres = (raw: string | null) =>
+    raw
+      ? raw
+          .split(",")
+          .map((id) => Number(id.trim()))
+          .filter((id) => Number.isInteger(id) && id > 0)
+      : [];
+
+  const [prevSearchKey, setPrevSearchKey] = useState(searchKey);
+  const [activeTab, setActiveTab] = useState<"popular" | "topRated">(
+    tabParam === "topRated" ? "topRated" : "popular"
+  );
   
   const [popularItems, setPopularItems] = useState<TMDBItem[]>(popular);
   const [topRatedItems, setTopRatedItems] = useState<TMDBItem[]>(topRated);
@@ -76,10 +93,22 @@ export function MediaListTabs({ title, mediaType, popular, topRated }: MediaList
   const [isLoading, setIsLoading] = useState(false);
 
   // Filter UI and configuration state
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [showFilters, setShowFilters] = useState(() => Boolean(genreParam));
+  const [selectedGenres, setSelectedGenres] = useState<number[]>(() =>
+    parseGenres(genreParam)
+  );
   const [selectedRating, setSelectedRating] = useState<number>(0);
   const [selectedYear, setSelectedYear] = useState<string>("");
+
+  if (prevSearchKey !== searchKey) {
+    setPrevSearchKey(searchKey);
+    setActiveTab(tabParam === "topRated" ? "topRated" : "popular");
+    const parsed = parseGenres(genreParam);
+    setSelectedGenres(parsed);
+    if (parsed.length > 0) {
+      setShowFilters(true);
+    }
+  }
 
   // Filtered list states
   const [filteredItems, setFilteredItems] = useState<TMDBItem[]>([]);
@@ -265,7 +294,7 @@ export function MediaListTabs({ title, mediaType, popular, topRated }: MediaList
       </div>
 
       <Tabs 
-        defaultValue="popular" 
+        value={activeTab} 
         className="w-full"
         onValueChange={(val) => setActiveTab(val as "popular" | "topRated")}
       >

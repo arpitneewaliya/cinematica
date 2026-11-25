@@ -58,6 +58,7 @@ export const metadata: Metadata = {
 };
 
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { ClerkProvider } from '@clerk/nextjs';
 import { CountryProvider } from "@/components/providers/CountryProvider";
 import { WatchlistProvider } from "@/components/providers/WatchlistProvider";
@@ -73,11 +74,12 @@ export default function RootLayout({
         lang="en"
         className={`${inter.variable} ${plusJakartaSans.variable} ${geistMono.variable} h-full antialiased dark`}
       >
-        <body className="min-h-full flex flex-col">
+        <body className="min-h-full flex flex-col bg-[#070708] text-foreground">
           <CountryProvider>
             <WatchlistProvider>
               <Navbar />
-              {children}
+              <div className="flex-1">{children}</div>
+              <Footer />
             </WatchlistProvider>
           </CountryProvider>
           <Analytics />

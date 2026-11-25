@@ -27,8 +27,13 @@ export async function addToWatchlist(data: {
     });
     revalidatePath("/watchlist");
     return { success: true, item };
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
       return { success: false, error: "Item already in watchlist" };
     }
     return { success: false, error: "Failed to add to watchlist" };
@@ -52,7 +57,7 @@ export async function removeFromWatchlist(mediaId: number, mediaType: "movie" | 
     });
     revalidatePath("/watchlist");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to remove from watchlist" };
   }
 }
@@ -92,6 +97,46 @@ export async function getUserWatchlist() {
   });
 
   return items;
+}
+
+export interface WatchlistSummaryItem {
+  mediaId: number;
+  mediaType: "movie" | "tv";
+  title: string;
+  posterPath: string | null;
+  backdropPath: string | null;
+  releaseDate: string | null;
+}
+
+export async function getUserWatchlistSummary(): Promise<WatchlistSummaryItem[]> {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return [];
+    }
+
+    const items = await prisma.watchlistItem.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        mediaId: true,
+        mediaType: true,
+        title: true,
+        posterPath: true,
+        backdropPath: true,
+        releaseDate: true,
+      },
+    });
+
+    return items;
+  } catch {
+    return [];
+  }
 }
 
 export async function getUserWatchlistIds(): Promise<number[]> {

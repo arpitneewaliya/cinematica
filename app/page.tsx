@@ -2,6 +2,7 @@ import {
   fetchMoviesByGenre,
   fetchMoviesByIds,
   fetchHeroMedia,
+  fetchTrendingMedia,
   fetchNowPlayingMovies,
   fetchPopularMovies,
   fetchTopRatedMovies,
@@ -10,7 +11,11 @@ import {
   fetchTrendingTvShows,
 } from "@/lib/tmdb";
 import { Hero } from "@/components/Hero";
+import { GenrePillBar } from "@/components/GenrePillBar";
+import { WatchlistRail } from "@/components/WatchlistRail";
+import { TopTenRail } from "@/components/TopTenRail";
 import { MediaRail } from "@/components/MediaRail";
+import { BackdropRail } from "@/components/BackdropRail";
 
 export const revalidate = 3600; // Cache page on Vercel CDN for 1 hour
 
@@ -28,13 +33,15 @@ const OSCAR_BEST_PICTURE_WINNERS = [
 ];
 
 export const metadata = {
-  title: "Cinematica - Discover Movies & TV Shows",
-  description: "Explore top trending movies and TV shows.",
+  title: "Cinematica — Discover Cinema & Television",
+  description:
+    "Explore trending cinema and television, log your watch history, and curate personal collections.",
 };
 
 export default async function Home() {
   const [
     heroItems,
+    trendingAll,
     trendingMovies,
     trendingTvShows,
     awardWinningFilms,
@@ -45,6 +52,7 @@ export default async function Home() {
     sciFiFantasy,
   ] = await Promise.all([
     fetchHeroMedia(),
+    fetchTrendingMedia(),
     fetchTrendingMovies(),
     fetchTrendingTvShows(),
     fetchMoviesByIds(OSCAR_BEST_PICTURE_WINNERS),
@@ -55,35 +63,104 @@ export default async function Home() {
     fetchMoviesByGenre([878, 14]),
   ]);
 
-  const hasData = heroItems.length > 0 || trendingMovies.length > 0 || trendingTvShows.length > 0;
+  const hasData =
+    heroItems.length > 0 || trendingMovies.length > 0 || trendingTvShows.length > 0;
 
-  // TMDb's all-media trending endpoint provides the mixed movie/TV ranking.
-  const topHeroItems = heroItems;
-  const featuredKeys = new Set(topHeroItems.map(item => `${item.media_type}:${item.id}`));
-  const remainingMovies = trendingMovies.filter(item => !featuredKeys.has(`movie:${item.id}`));
-  const remainingTvShows = trendingTvShows.filter(item => !featuredKeys.has(`tv:${item.id}`));
+  const featuredKeys = new Set(
+    heroItems.map((item) => `${item.media_type}:${item.id}`)
+  );
+  const remainingMovies = trendingMovies.filter(
+    (item) => !featuredKeys.has(`movie:${item.id}`)
+  );
+  const remainingTvShows = trendingTvShows.filter(
+    (item) => !featuredKeys.has(`tv:${item.id}`)
+  );
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-[#0a0a0a] pb-16">
+    <main className="min-h-screen overflow-x-clip bg-[#070708] pb-14">
       {hasData ? (
         <>
-          {topHeroItems.length > 0 && <Hero items={topHeroItems} />}
-          <div className="relative z-20 -mt-px space-y-0 rounded-t-[2rem] bg-gradient-to-b from-[#101010] via-[#0a0a0a] to-[#0a0a0a] pt-3 md:rounded-t-[3rem] md:pt-7">
-            <MediaRail title="Trending Movies" eyebrow="What everyone is watching" items={remainingMovies} />
-            <MediaRail title="Trending TV Shows" eyebrow="Binge-worthy now" items={remainingTvShows} />
-            <MediaRail title="Award-Winning Films" eyebrow="Oscar Best Picture winners" items={awardWinningFilms} />
-            <MediaRail title="Top-Rated Movies" eyebrow="Critically celebrated" items={topRatedMovies} />
-            <MediaRail title="Top-Rated TV Shows" eyebrow="The best on television" items={topRatedTvShows} />
-            <MediaRail title="New Releases" eyebrow="Fresh on screen" items={newReleases} />
-            <MediaRail title="Popular Movies" eyebrow="Audience favorites" items={popularMovies} />
-            <MediaRail title="Sci-Fi & Fantasy Spotlight" eyebrow="Escape the ordinary" items={sciFiFantasy} />
+          {heroItems.length > 0 && <Hero items={heroItems} />}
+
+          <GenrePillBar />
+
+          <div className="relative z-20 pt-2 md:pt-4">
+            <WatchlistRail />
+
+            <TopTenRail
+              items={trendingAll}
+              title="Top 10 Today"
+              eyebrow="Daily Global Ranking"
+            />
+
+            <MediaRail
+              title="Trending Films"
+              eyebrow="Momentum Right Now"
+              items={remainingMovies}
+              exploreHref="/movies"
+            />
+
+            <MediaRail
+              title="Trending Series"
+              eyebrow="Most Watched Television"
+              items={remainingTvShows}
+              exploreHref="/tv"
+            />
+
+            <div className="my-2 border-y border-white/[0.06] bg-white/[0.015]">
+              <BackdropRail
+                title="Academy Award Winners"
+                eyebrow="Best Picture Collection"
+                items={awardWinningFilms}
+                exploreHref="/movies?tab=topRated"
+              />
+            </div>
+
+            <MediaRail
+              title="Critically Acclaimed Films"
+              eyebrow="All-Time Highest Rated"
+              items={topRatedMovies}
+              exploreHref="/movies?tab=topRated"
+            />
+
+            <MediaRail
+              title="Acclaimed Television"
+              eyebrow="Prestige Series"
+              items={topRatedTvShows}
+              exploreHref="/tv?tab=topRated"
+            />
+
+            <div className="my-2 border-y border-white/[0.06] bg-white/[0.015]">
+              <BackdropRail
+                title="In Theaters & New Releases"
+                eyebrow="Fresh on Screen"
+                items={newReleases}
+                exploreHref="/movies"
+              />
+            </div>
+
+            <MediaRail
+              title="Audience Favorites"
+              eyebrow="Popular Cinema"
+              items={popularMovies}
+              exploreHref="/movies"
+            />
+
+            <MediaRail
+              title="Sci-Fi & Fantasy"
+              eyebrow="Worlds Beyond"
+              items={sciFiFantasy}
+              exploreHref="/movies?genre=878,14"
+            />
           </div>
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
-          <h1 className="text-3xl font-bold mb-4">Welcome to Cinematica</h1>
-          <p className="text-muted-foreground max-w-md">
-            Please add your TMDB API Key to the .env.local file to see trending movies and TV shows.
+        <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
+          <h1 className="mb-3 font-heading text-3xl font-bold text-white">
+            Welcome to Cinematica
+          </h1>
+          <p className="max-w-md text-sm text-zinc-400">
+            Please add your TMDB API Key to the <code className="text-zinc-200">.env.local</code> file to explore trending films and series.
           </p>
         </div>
       )}

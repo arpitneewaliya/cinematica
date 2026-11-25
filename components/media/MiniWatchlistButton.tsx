@@ -1,31 +1,38 @@
 "use client";
 
 import { useTransition } from "react";
-import { Button } from "@/components/ui/button";
 import { Bookmark, Check } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { TMDBItem } from "@/lib/tmdb";
 import { useWatchlist } from "@/components/providers/WatchlistProvider";
+import { cn } from "@/lib/utils";
 
 interface MiniWatchlistButtonProps {
   item: TMDBItem;
   isSaved?: boolean;
   onToggle?: (id: number) => void;
+  className?: string;
 }
 
-export function MiniWatchlistButton({ item, isSaved: propIsSaved, onToggle }: MiniWatchlistButtonProps) {
+export function MiniWatchlistButton({
+  item,
+  isSaved: propIsSaved,
+  onToggle,
+  className,
+}: MiniWatchlistButtonProps) {
   const [isPending, startTransition] = useTransition();
   const { isSignedIn } = useAuth();
+  const { openSignIn } = useClerk();
   const { isSaved: checkIsSaved, toggleWatchlist } = useWatchlist();
 
-  const isSaved = propIsSaved !== undefined ? propIsSaved : checkIsSaved(item.id);
+  const isSaved = propIsSaved !== undefined ? propIsSaved : checkIsSaved(item.id, item.media_type);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!isSignedIn) {
-      alert("Please sign in to add to your watchlist.");
+      openSignIn();
       return;
     }
 
@@ -45,19 +52,24 @@ export function MiniWatchlistButton({ item, isSaved: propIsSaved, onToggle }: Mi
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className={`absolute top-2 left-2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full backdrop-blur-md border border-white/20 transition-all duration-300 ${
-        isSaved
-          ? "bg-primary/90 text-primary-foreground opacity-100"
-          : "bg-black/40 text-white md:opacity-0 md:group-hover:opacity-100 hover:bg-black/60"
-      }`}
+    <button
+      type="button"
       onClick={handleToggle}
       disabled={isPending}
       aria-label={isSaved ? "Remove from watchlist" : "Add to watchlist"}
+      className={cn(
+        "absolute top-2 left-2 z-10 flex size-8 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 cursor-pointer active:scale-90 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
+        isSaved
+          ? "border-white bg-white text-black opacity-100 shadow-[0_4px_16px_rgba(255,255,255,0.28)]"
+          : "border-white/15 bg-black/65 text-white hover:border-white/35 hover:bg-black/85 md:opacity-0 md:group-hover:opacity-100",
+        className
+      )}
     >
-      {isSaved ? <Check className="w-4 h-4 md:w-5 md:h-5" /> : <Bookmark className="w-4 h-4 md:w-5 md:h-5" />}
-    </Button>
+      {isSaved ? (
+        <Check className="size-3.5 stroke-[2.75]" />
+      ) : (
+        <Bookmark className="size-3.5" />
+      )}
+    </button>
   );
 }

@@ -59,14 +59,24 @@ export async function fetchFromTMDB<T>(endpoint: string): Promise<T> {
       };
     }
 
-    const res = await fetch(url, options);
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await fetch(url, options);
 
-    if (!res.ok) {
-      console.error(`Failed to fetch from TMDB: ${res.status}`);
-      return { results: [] } as unknown as T;
+        if (!res.ok) {
+          console.error(`Failed to fetch from TMDB: ${res.status}`);
+          return { results: [] } as unknown as T;
+        }
+
+        return await res.json();
+      } catch (err) {
+        if (attempt === maxAttempts) throw err;
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+      }
     }
 
-    return res.json();
+    return { results: [] } as unknown as T;
   } catch (error) {
     console.error(`Fetch error for TMDB endpoint ${endpoint}:`, error);
     return { results: [] } as unknown as T;
@@ -120,7 +130,10 @@ export async function fetchHeroMedia(): Promise<TMDBItem[]> {
   );
 }
 
-export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500') {
+export function getImageUrl(
+  path: string | null | undefined,
+  size: 'w342' | 'w500' | 'w780' | 'w1280' | 'original' = 'w500'
+) {
   if (!path) return '';
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }

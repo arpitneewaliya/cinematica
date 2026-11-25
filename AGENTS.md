@@ -46,11 +46,13 @@ Cinematica is a modern, responsive web application for discovering trending, pop
     - `SearchModal.tsx`: Interactive cmd-palette style global search.
     - `TrailerModal.tsx`: Play YouTube trailers.
     - `CastRow.tsx`: Cast profiles row.
-  - `Navbar.tsx`: Global navigation header containing profile button, Clerk triggers, links, and search activation.
-  - `SearchBar.tsx`: Visual search input activating the SearchModal.
-  - `Hero.tsx`: Home carousel layout.
-  - `MediaCard.tsx` & `MediaRow.tsx`: Grid cards and scrolling rows.
-  - `MediaListTabs.tsx`: Tabbed filters for movies & TV shows.
+  - `Navbar.tsx`: Floating frosted-glass capsule global navigation header with Clerk triggers, country switcher, library dropdown, and search activation.
+  - `Footer.tsx`: Minimal monochrome global footer.
+  - `Hero.tsx`: `85svh` crossfade home showcase with Trio CTAs, quiet streaming icons, and animated slide progress dock.
+  - `GenrePillBar.tsx`: Quick category & genre deep-link filter bar below the Hero.
+  - `MediaCard.tsx`: Unobstructed `2:3` poster card with caption underneath.
+  - `MediaRail.tsx`, `TopTenRail.tsx`, `BackdropRail.tsx`, `WatchlistRail.tsx`, & `MediaRow.tsx`: Editorial 6-up portrait rails, numbered Top 10 showcase, `16:9` widescreen spotlight rails, personalized watchlist strip, and grid rows.
+  - `MediaListTabs.tsx`: Tabbed filters for movies & TV shows supporting URL query deep-linking (`?tab=`, `?genre=`).
 - `lib/`: Utility configuration code.
   - `tmdb.ts`: Data fetching functions from TMDb API.
   - `prisma.ts`: PrismaClient singleton pattern.
