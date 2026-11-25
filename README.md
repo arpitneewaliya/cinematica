@@ -116,7 +116,7 @@ prisma/
 
 ## Developer Guidelines
 
-For project conventions (Promise-based search params in Next 16, Neon connection parameters, and coding styles), please consult [AGENTS.md](file:///d:/MY_DEV_PROJECTS/cinematica/AGENTS.md) and [CLAUDE.md](file:///d:/MY_DEV_PROJECTS/cinematica/CLAUDE.md).
+For project conventions (Promise-based search params in Next 16, Neon connection parameters, and coding styles), please consult [AGENTS.md](file:///d:/MY_DEV_PROJECTS/cinematica/AGENTS.md).
 
 ## License
 
